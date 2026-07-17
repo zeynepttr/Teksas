@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hane İK - Yönetici Paneli</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Material Design Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <!-- Vanilla CSS Link -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Firebase SDK (Compat Version for Vanilla JS) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+  <!-- ==================== AUTH CONTAINER ==================== -->
+  <div id="auth-container" class="auth-wrapper">
+    <div class="auth-card-glow"></div>
+    
+    <!-- 1. LOGIN SCREEN -->
+    <div id="login-card" class="auth-card active">
+      <div class="auth-header">
+        <div class="auth-logo">
+          <span class="material-icons-round">admin_panel_settings</span>
+        </div>
+        <h1>Hane İK</h1>
+        <p>Yönetici Giriş Paneli</p>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="login-email">E-posta</label>
+          <div class="input-wrapper">
+            <span class="material-icons-round input-icon">mail_outline</span>
+            <input type="email" id="login-email" placeholder="admin@hane.org.tr" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="login-password">Şifre</label>
+          <div class="input-wrapper">
+            <span class="material-icons-round input-icon">lock_outline</span>
+            <input type="password" id="login-password" placeholder="••••••" required>
+          </div>
+        </div>
+
+        <div id="login-error" class="error-msg hidden"></div>
+
+        <button type="submit" id="btn-login" class="btn-primary">
+          <span>Giriş Yap</span>
+          <span class="material-icons-round btn-arrow">arrow_forward</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- 2. TWO-FACTOR AUTH SCREEN (MOCK) -->
+    <div id="tfa-card" class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo security">
+          <span class="material-icons-round">security</span>
+        </div>
+        <h1>İki Adımlı Doğrulama</h1>
+        <p><span id="tfa-email-display">a***n@hane.org.tr</span> adresine gönderilen 6 haneli kodu girin.</p>
+      </div>
+
+      <form id="tfa-form">
+        <div class="tfa-code-inputs">
+          <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="tfa-box" required>
+          <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="tfa-box" required disabled>
+          <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="tfa-box" required disabled>
+          <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="tfa-box" required disabled>
+          <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="tfa-box" required disabled>
+          <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="tfa-box" required disabled>
+        </div>
+
+        <div id="tfa-error" class="error-msg hidden"></div>
+
+        <div class="tfa-timer">
+          Kalan Süre: <span id="timer-sec" class="timer-bold">30</span> saniye
+        </div>
+
+        <button type="submit" id="btn-tfa-verify" class="btn-primary">
+          <span>Kodu Doğrula</span>
+          <span class="material-icons-round">verified_user</span>
+        </button>
+
+        <div class="tfa-resend">
+          Kod gelmedi mi? <a href="#" id="tfa-resend-link" class="disabled">Tekrar Gönder</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== DASHBOARD CONTAINER ==================== -->
+  <div id="dashboard-container" class="dashboard-wrapper hidden">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">
+          <span class="material-icons-round">admin_panel_settings</span>
+        </div>
+        <div class="brand-text">
+          <h2>Hane</h2>
+          <span>İK YÖNETİCİ PANELİ</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <a href="#" class="menu-item active" data-tab="onaylar">
+          <span class="material-icons-round">rate_review</span>
+          <span>Paylaşım Onayları</span>
+        </a>
+        <a href="#" class="menu-item" data-tab="crm">
+          <span class="material-icons-round">people</span>
+          <span>CRM / Çalışanlar</span>
+        </a>
+        <a href="#" class="menu-item" data-tab="bordrolar">
+          <span class="material-icons-round">receipt_long</span>
+          <span>Bordro Yönetimi</span>
+        </a>
+        <a href="#" class="menu-item" data-tab="izinler">
+          <span class="material-icons-round">time_to_leave</span>
+          <span>İzin Talepleri</span>
+        </a>
+        <a href="#" class="menu-item" data-tab="loglar">
+          <span class="material-icons-round">history_toggle_off</span>
+          <span>Sistem Logları</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="btn-logout" class="btn-logout">
+          <span class="material-icons-round">logout</span>
+          <span>Çıkış Yap</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN APP AREA -->
+    <main class="main-content">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <h1 id="page-title">Paylaşım Onayları</h1>
+        <div class="user-profile">
+          <div class="profile-avatar">ZT</div>
+          <div class="profile-info">
+            <span class="profile-name" id="user-display-name">Zeynep Turan</span>
+            <span class="profile-role">İK Yönetici</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Scrollable Content Space -->
+      <div class="content-body">
+        
+        <!-- ==================== TAB 1: PAYLAŞIM ONAYLARI ==================== -->
+        <section id="tab-onaylar" class="tab-pane active">
+          <div id="approvals-list" class="list-container">
+            <!-- Dynamic approvals cards go here -->
+            <div class="loading-spinner">Yükleniyor...</div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB 2: CRM / ÇALIŞANLAR ==================== -->
+        <section id="tab-crm" class="tab-pane">
+          <!-- Stats Panel & Add employee action -->
+          <div class="section-actions-bar">
+            <div class="stats-card">
+              <div class="stats-info">
+                <span class="stats-label">Toplam Çalışan Sayısı</span>
+                <h3 id="employee-count" class="stats-value">0 Kişi</h3>
+              </div>
+              <button id="btn-add-employee" class="btn-action">
+                <span class="material-icons-round">person_add</span>
+                <span>Yeni Çalışan Ekle</span>
+              </button>
+            </div>
+            
+            <div class="search-bar-wrapper">
+              <span class="material-icons-round search-icon">search</span>
+              <input type="text" id="employee-search" placeholder="İsim, birim veya rol arayın...">
+            </div>
+          </div>
+
+          <div id="employee-grid" class="cards-grid">
+            <!-- Dynamic employee cards go here -->
+            <div class="loading-spinner">Yükleniyor...</div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB 3: BORDRO YÖNETİMİ ==================== -->
+        <section id="tab-bordrolar" class="tab-pane">
+          <div class="section-actions-bar">
+            <div class="stats-card">
+              <div class="stats-info">
+                <span class="stats-label">Maaş Bordroları</span>
+                <h3 class="stats-value">Bordro Listesi</h3>
+              </div>
+              <button id="btn-add-payroll" class="btn-action">
+                <span class="material-icons-round">add</span>
+                <span>Bordro Oluştur</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="payrolls-grid" class="cards-grid border-grid">
+            <!-- Dynamic payroll cards go here -->
+            <div class="loading-spinner">Yükleniyor...</div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB 4: İZİN TALEPLERİ ==================== -->
+        <section id="tab-izinler" class="tab-pane">
+          <div class="card-table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Çalışan</th>
+                  <th>Birim / Departman</th>
+                  <th>İzin Türü</th>
+                  <th>Tarih Aralığı</th>
+                  <th>Süre</th>
+                  <th>Durum</th>
+                  <th>İşlemler</th>
+                </tr>
+              </thead>
+              <tbody id="leaves-table-body">
+                <!-- Dynamic leave rows go here -->
+                <tr><td colspan="7" class="table-loading">Yükleniyor...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ==================== TAB 5: SİSTEM LOGLARI ==================== -->
+        <section id="tab-loglar" class="tab-pane">
+          <div class="card-table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Zaman Damgası</th>
+                  <th>İşlem Yapan</th>
+                  <th>Detay</th>
+                  <th>Birim</th>
+                </tr>
+              </thead>
+              <tbody id="logs-table-body">
+                <!-- Dynamic log rows go here -->
+                <tr><td colspan="4" class="table-loading">Yükleniyor...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- 1. EMPLOYEE ADD/EDIT MODAL -->
+  <div id="employee-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="employee-modal-title">Yeni Çalışan Ekle</h2>
+        <button class="modal-close btn-close-modal">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+      
+      <form id="employee-form" class="modal-form">
+        <input type="hidden" id="emp-uid">
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="emp-name">Adı</label>
+            <input type="text" id="emp-name" required>
+          </div>
+          <div class="form-group">
+            <label for="emp-surname">Soyadı</label>
+            <input type="text" id="emp-surname" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="emp-email">E-posta</label>
+            <input type="email" id="emp-email" required>
+          </div>
+          <div class="form-group">
+            <label for="emp-phone">Telefon</label>
+            <input type="tel" id="emp-phone" placeholder="+90 5XX XXX XXXX" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="emp-age">Yaş</label>
+            <input type="number" id="emp-age" min="18" max="75" required>
+          </div>
+          <div class="form-group">
+            <label for="emp-blood">Kan Grubu</label>
+            <input type="text" id="emp-blood" placeholder="0 Rh+" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="emp-code">Sicil Kodu</label>
+            <input type="text" id="emp-code" placeholder="IHH-XXX" required>
+          </div>
+          <div class="form-group">
+            <label for="emp-ext">Dahili Hat</label>
+            <input type="text" id="emp-ext" placeholder="XXXX" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="emp-dept">Birim / Departman</label>
+            <input type="text" id="emp-dept" placeholder="Örn: Saha Operasyonları" required>
+          </div>
+          <div class="form-group">
+            <label for="emp-role">Görev / Rol</label>
+            <select id="emp-role">
+              <option value="İHH Çalışanı">İHH Çalışanı</option>
+              <option value="Destek Personeli">Destek Personeli</option>
+              <option value="Saha Gönüllüsü">Saha Gönüllüsü</option>
+              <option value="İK Çalışanı (Admin)">İK Çalışanı (Admin)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary btn-close-modal">İptal</button>
+          <button type="submit" id="btn-save-employee" class="btn-submit">Ekle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. PAYROLL CREATE MODAL -->
+  <div id="payroll-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Yeni Maaş Bordrosu Oluştur</h2>
+        <button class="modal-close btn-close-modal">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+
+      <form id="payroll-form" class="modal-form">
+        <div class="form-group">
+          <label for="pay-employee">Çalışan Seçin</label>
+          <select id="pay-employee" required>
+            <!-- Dynamic option list of active employees -->
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="pay-month">Ay</label>
+            <input type="text" id="pay-month" placeholder="Örn: Ağustos" required>
+          </div>
+          <div class="form-group">
+            <label for="pay-year">Yıl</label>
+            <input type="number" id="pay-year" value="2026" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="pay-netsalary">Net Maaş (TL)</label>
+          <input type="number" id="pay-netsalary" value="40000" required>
+        </div>
+
+        <div class="form-group">
+          <label for="pay-allowance">Sosyal Yardım / Prim (TL)</label>
+          <input type="number" id="pay-allowance" value="3000" required>
+        </div>
+
+        <div class="form-group">
+          <label for="pay-deductions">Vergi / Diğer Kesintiler (TL)</label>
+          <input type="number" id="pay-deductions" value="1500" required>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary btn-close-modal">İptal</button>
+          <button type="submit" class="btn-submit">Bordro Oluştur</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Controller script Link -->
+  <script src="app.js"></script>
+</body>
+</html>

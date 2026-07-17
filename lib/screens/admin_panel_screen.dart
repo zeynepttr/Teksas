@@ -93,6 +93,37 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isWideScreen = MediaQuery.of(context).size.width > 900;
+
+    if (isWideScreen) {
+      return Scaffold(
+        body: Row(
+          children: [
+            _buildWebSidebar(),
+            Expanded(
+              child: Column(
+                children: [
+                  _buildSectionHeader(_getSectionTitle(_currentIndex)),
+                  Expanded(
+                    child: IndexedStack(
+                      index: _currentIndex,
+                      children: [
+                        _buildPendingTab(),
+                        _buildCrmTab(),
+                        _buildPayrollsTab(),
+                        _buildLeaveRequestsTab(),
+                        _buildLogsTab(),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -163,6 +194,240 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildWebSidebar() {
+    final List<Map<String, dynamic>> menuItems = [
+      {
+        "icon": Icons.rate_review_outlined,
+        "activeIcon": Icons.rate_review,
+        "label": "Paylaşım Onayları",
+      },
+      {
+        "icon": Icons.people_outline,
+        "activeIcon": Icons.people,
+        "label": "CRM / Çalışanlar",
+      },
+      {
+        "icon": Icons.receipt_long_outlined,
+        "activeIcon": Icons.receipt_long,
+        "label": "Bordro Yönetimi",
+      },
+      {
+        "icon": Icons.time_to_leave_outlined,
+        "activeIcon": Icons.time_to_leave,
+        "label": "İzin Talepleri",
+      },
+      {
+        "icon": Icons.history_toggle_off_outlined,
+        "activeIcon": Icons.history_toggle_off,
+        "label": "Sistem Logları",
+      },
+    ];
+
+    return Container(
+      width: 260,
+      color: AppColors.buttonDark,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.admin_panel_settings,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Hane",
+                      style: TextStyle(
+                        fontFamily: 'Quicksand',
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      "İK YÖNETİCİ PANELİ",
+                      style: TextStyle(
+                        fontFamily: 'DINPro',
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            height: 1,
+            color: Colors.white.withOpacity(0.08),
+            margin: const EdgeInsets.only(bottom: 20),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: menuItems.length,
+              itemBuilder: (context, index) {
+                final item = menuItems[index];
+                final bool isSelected = _currentIndex == index;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: InkWell(
+                    onTap: () {
+                      setState(() {
+                        _currentIndex = index;
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: isSelected ? Colors.white.withOpacity(0.1) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isSelected ? item["activeIcon"] as IconData : item["icon"] as IconData,
+                            color: isSelected ? Colors.white : Colors.white60,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            item["label"] as String,
+                            style: TextStyle(
+                              fontFamily: 'DINPro',
+                              fontSize: 13,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected ? Colors.white : Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: InkWell(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.white.withOpacity(0.15)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.arrow_back, color: Colors.white, size: 16),
+                    const SizedBox(width: 10),
+                    Text(
+                      "Paneli Kapat",
+                      style: TextStyle(
+                        fontFamily: 'DINPro',
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border(bottom: BorderSide(color: AppColors.surfaceLight, width: 1)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontFamily: 'DINPro',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          Row(
+            children: [
+              const CircleAvatar(
+                radius: 16,
+                backgroundColor: AppColors.buttonLight,
+                child: Text(
+                  "Z",
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkGreen,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                _firebaseService.currentUser?.name ?? "İK Yönetici",
+                style: const TextStyle(
+                  fontFamily: 'DINPro',
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getSectionTitle(int index) {
+    switch (index) {
+      case 0:
+        return "Paylaşım Onayları";
+      case 1:
+        return "CRM / Çalışanlar";
+      case 2:
+        return "Bordro Yönetimi";
+      case 3:
+        return "İzin Talepleri";
+      case 4:
+        return "Sistem Logları";
+      default:
+        return "İK Yönetim Paneli";
+    }
   }
 
   Widget _buildPendingTab() {
@@ -561,6 +826,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final phoneCtrl = TextEditingController();
     final ageCtrl = TextEditingController();
     final bloodCtrl = TextEditingController();
+    final extCtrl = TextEditingController(text: (1000 + (DateTime.now().millisecond % 9000)).toString());
+    final codeCtrl = TextEditingController(text: "IHH-${100 + (DateTime.now().millisecond % 900)}");
+    final deptCtrl = TextEditingController(text: "Saha Operasyonları");
     String selectedRole = 'İHH Çalışanı';
 
     showDialog(
@@ -570,46 +838,59 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               title: const Text("Yeni Çalışan Ekle", style: TextStyle(fontFamily: 'DINPro', fontWeight: FontWeight.bold)),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomTextField(controller: nameCtrl, labelText: "Adı", hintText: "Adı"),
-                    const SizedBox(height: 12),
-                    CustomTextField(controller: surnameCtrl, labelText: "Soyadı", hintText: "Soyadı"),
-                    const SizedBox(height: 12),
-                    CustomTextField(controller: emailCtrl, labelText: "E-posta", hintText: "E-posta", keyboardType: TextInputType.emailAddress),
-                    const SizedBox(height: 12),
-                    CustomTextField(controller: phoneCtrl, labelText: "Telefon", hintText: "Telefon", keyboardType: TextInputType.phone),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(child: CustomTextField(controller: ageCtrl, labelText: "Yaş", hintText: "Yaş", keyboardType: TextInputType.number)),
-                        const SizedBox(width: 12),
-                        Expanded(child: CustomTextField(controller: bloodCtrl, labelText: "Kan Grubu", hintText: "Kan Grubu")),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      value: selectedRole,
-                      decoration: const InputDecoration(
-                        labelText: "Görev / Rol",
-                        border: OutlineInputBorder(),
+              content: SizedBox(
+                width: 450,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomTextField(controller: nameCtrl, labelText: "Adı", hintText: "Adı"),
+                      const SizedBox(height: 12),
+                      CustomTextField(controller: surnameCtrl, labelText: "Soyadı", hintText: "Soyadı"),
+                      const SizedBox(height: 12),
+                      CustomTextField(controller: emailCtrl, labelText: "E-posta", hintText: "E-posta", keyboardType: TextInputType.emailAddress),
+                      const SizedBox(height: 12),
+                      CustomTextField(controller: phoneCtrl, labelText: "Telefon", hintText: "Telefon", keyboardType: TextInputType.phone),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(child: CustomTextField(controller: ageCtrl, labelText: "Yaş", hintText: "Yaş", keyboardType: TextInputType.number)),
+                          const SizedBox(width: 12),
+                          Expanded(child: CustomTextField(controller: bloodCtrl, labelText: "Kan Grubu", hintText: "Kan Grubu")),
+                        ],
                       ),
-                      items: const [
-                        DropdownMenuItem(value: 'İHH Çalışanı', child: Text('İHH Çalışanı')),
-                        DropdownMenuItem(value: 'Destek Personeli', child: Text('Destek Personeli')),
-                        DropdownMenuItem(value: 'Saha Gönüllüsü', child: Text('Saha Gönüllüsü')),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) {
-                          setDialogState(() {
-                            selectedRole = val;
-                          });
-                        }
-                      },
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(child: CustomTextField(controller: codeCtrl, labelText: "Sicil Kodu", hintText: "Örn: IHH-104")),
+                          const SizedBox(width: 12),
+                          Expanded(child: CustomTextField(controller: extCtrl, labelText: "Dahili No", hintText: "Örn: 1004")),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      CustomTextField(controller: deptCtrl, labelText: "Birim / Departman", hintText: "Örn: Saha Operasyonları"),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value: selectedRole,
+                        decoration: const InputDecoration(
+                          labelText: "Görev / Rol",
+                          border: OutlineInputBorder(),
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 'İHH Çalışanı', child: Text('İHH Çalışanı')),
+                          DropdownMenuItem(value: 'Destek Personeli', child: Text('Destek Personeli')),
+                          DropdownMenuItem(value: 'Saha Gönüllüsü', child: Text('Saha Gönüllüsü')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            setDialogState(() {
+                              selectedRole = val;
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -631,6 +912,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       age: int.tryParse(ageCtrl.text.trim()) ?? 30,
                       role: selectedRole,
                       joinTimestamp: DateTime.now().millisecondsSinceEpoch,
+                      extension: extCtrl.text.trim().isEmpty ? "1000" : extCtrl.text.trim(),
+                      employeeCode: codeCtrl.text.trim().isEmpty ? "IHH-100" : codeCtrl.text.trim(),
+                      department: deptCtrl.text.trim().isEmpty ? "Saha Operasyonları" : deptCtrl.text.trim(),
                     );
                     await _firebaseService.addEmployee(newEmp);
                     if (context.mounted) {
@@ -655,6 +939,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final phoneCtrl = TextEditingController(text: emp.phone);
     final ageCtrl = TextEditingController(text: emp.age.toString());
     final bloodCtrl = TextEditingController(text: emp.bloodGroup);
+    final extCtrl = TextEditingController(text: emp.extension);
+    final codeCtrl = TextEditingController(text: emp.employeeCode);
+    final deptCtrl = TextEditingController(text: emp.department);
     String selectedRole = emp.role;
 
     showDialog(
@@ -664,46 +951,59 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               title: const Text("Çalışan Bilgilerini Düzenle", style: TextStyle(fontFamily: 'DINPro', fontWeight: FontWeight.bold)),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomTextField(controller: nameCtrl, labelText: "Adı", hintText: "Adı"),
-                    const SizedBox(height: 12),
-                    CustomTextField(controller: surnameCtrl, labelText: "Soyadı", hintText: "Soyadı"),
-                    const SizedBox(height: 12),
-                    CustomTextField(controller: emailCtrl, labelText: "E-posta", hintText: "E-posta", keyboardType: TextInputType.emailAddress),
-                    const SizedBox(height: 12),
-                    CustomTextField(controller: phoneCtrl, labelText: "Telefon", hintText: "Telefon", keyboardType: TextInputType.phone),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(child: CustomTextField(controller: ageCtrl, labelText: "Yaş", hintText: "Yaş", keyboardType: TextInputType.number)),
-                        const SizedBox(width: 12),
-                        Expanded(child: CustomTextField(controller: bloodCtrl, labelText: "Kan Grubu", hintText: "Kan Grubu")),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      value: selectedRole,
-                      decoration: const InputDecoration(
-                        labelText: "Görev / Rol",
-                        border: OutlineInputBorder(),
+              content: SizedBox(
+                width: 450,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomTextField(controller: nameCtrl, labelText: "Adı", hintText: "Adı"),
+                      const SizedBox(height: 12),
+                      CustomTextField(controller: surnameCtrl, labelText: "Soyadı", hintText: "Soyadı"),
+                      const SizedBox(height: 12),
+                      CustomTextField(controller: emailCtrl, labelText: "E-posta", hintText: "E-posta", keyboardType: TextInputType.emailAddress),
+                      const SizedBox(height: 12),
+                      CustomTextField(controller: phoneCtrl, labelText: "Telefon", hintText: "Telefon", keyboardType: TextInputType.phone),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(child: CustomTextField(controller: ageCtrl, labelText: "Yaş", hintText: "Yaş", keyboardType: TextInputType.number)),
+                          const SizedBox(width: 12),
+                          Expanded(child: CustomTextField(controller: bloodCtrl, labelText: "Kan Grubu", hintText: "Kan Grubu")),
+                        ],
                       ),
-                      items: const [
-                        DropdownMenuItem(value: 'İHH Çalışanı', child: Text('İHH Çalışanı')),
-                        DropdownMenuItem(value: 'Destek Personeli', child: Text('Destek Personeli')),
-                        DropdownMenuItem(value: 'Saha Gönüllüsü', child: Text('Saha Gönüllüsü')),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) {
-                          setDialogState(() {
-                            selectedRole = val;
-                          });
-                        }
-                      },
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(child: CustomTextField(controller: codeCtrl, labelText: "Sicil Kodu", hintText: "Örn: IHH-104")),
+                          const SizedBox(width: 12),
+                          Expanded(child: CustomTextField(controller: extCtrl, labelText: "Dahili No", hintText: "Örn: 1004")),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      CustomTextField(controller: deptCtrl, labelText: "Birim / Departman", hintText: "Örn: Saha Operasyonları"),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value: selectedRole,
+                        decoration: const InputDecoration(
+                          labelText: "Görev / Rol",
+                          border: OutlineInputBorder(),
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 'İHH Çalışanı', child: Text('İHH Çalışanı')),
+                          DropdownMenuItem(value: 'Destek Personeli', child: Text('Destek Personeli')),
+                          DropdownMenuItem(value: 'Saha Gönüllüsü', child: Text('Saha Gönüllüsü')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            setDialogState(() {
+                              selectedRole = val;
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -722,6 +1022,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       bloodGroup: bloodCtrl.text.trim(),
                       age: int.tryParse(ageCtrl.text.trim()) ?? emp.age,
                       role: selectedRole,
+                      extension: extCtrl.text.trim(),
+                      employeeCode: codeCtrl.text.trim(),
+                      department: deptCtrl.text.trim(),
                     );
                     await _firebaseService.updateEmployee(updatedEmp);
                     if (context.mounted) {
@@ -884,45 +1187,48 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               title: const Text("Yeni Maaş Bordrosu Oluştur", style: TextStyle(fontFamily: 'DINPro', fontWeight: FontWeight.bold)),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    DropdownButtonFormField<UserModel>(
-                      value: selectedEmp,
-                      decoration: const InputDecoration(
-                        labelText: "Çalışan Seçin",
-                        border: OutlineInputBorder(),
+              content: SizedBox(
+                width: 450,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      DropdownButtonFormField<UserModel>(
+                        value: selectedEmp,
+                        decoration: const InputDecoration(
+                          labelText: "Çalışan Seçin",
+                          border: OutlineInputBorder(),
+                        ),
+                        items: employees.map((e) {
+                          return DropdownMenuItem<UserModel>(
+                            value: e,
+                            child: Text(e.fullName),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setDialogState(() {
+                              selectedEmp = val;
+                            });
+                          }
+                        },
                       ),
-                      items: employees.map((e) {
-                        return DropdownMenuItem<UserModel>(
-                          value: e,
-                          child: Text(e.fullName),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) {
-                          setDialogState(() {
-                            selectedEmp = val;
-                          });
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(child: CustomTextField(controller: monthCtrl, labelText: "Ay", hintText: "Örn: Ağustos")),
-                        const SizedBox(width: 12),
-                        Expanded(child: CustomTextField(controller: yearCtrl, labelText: "Yıl", hintText: "Örn: 2026", keyboardType: TextInputType.number)),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    CustomTextField(controller: netSalaryCtrl, labelText: "Net Maaş (TL)", hintText: "Net Maaş", keyboardType: TextInputType.number),
-                    const SizedBox(height: 12),
-                    CustomTextField(controller: allowancesCtrl, labelText: "Sosyal Yardım / Prim (TL)", hintText: "Sosyal Yardım", keyboardType: TextInputType.number),
-                    const SizedBox(height: 12),
-                    CustomTextField(controller: deductionsCtrl, labelText: "Vergi / Diğer Kesintiler (TL)", hintText: "Kesintiler", keyboardType: TextInputType.number),
-                  ],
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(child: CustomTextField(controller: monthCtrl, labelText: "Ay", hintText: "Örn: Ağustos")),
+                          const SizedBox(width: 12),
+                          Expanded(child: CustomTextField(controller: yearCtrl, labelText: "Yıl", hintText: "Örn: 2026", keyboardType: TextInputType.number)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      CustomTextField(controller: netSalaryCtrl, labelText: "Net Maaş (TL)", hintText: "Net Maaş", keyboardType: TextInputType.number),
+                      const SizedBox(height: 12),
+                      CustomTextField(controller: allowancesCtrl, labelText: "Sosyal Yardım / Prim (TL)", hintText: "Sosyal Yardım", keyboardType: TextInputType.number),
+                      const SizedBox(height: 12),
+                      CustomTextField(controller: deductionsCtrl, labelText: "Vergi / Diğer Kesintiler (TL)", hintText: "Kesintiler", keyboardType: TextInputType.number),
+                    ],
+                  ),
                 ),
               ),
               actions: [

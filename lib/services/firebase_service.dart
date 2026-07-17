@@ -39,6 +39,7 @@ class FirebaseService {
   final _authStreamController = StreamController<UserModel?>.broadcast();
   final _payrollsStreamController = StreamController<List<PayrollModel>>.broadcast();
   final _leaveRequestsStreamController = StreamController<List<LeaveRequestModel>>.broadcast();
+  final _usersStreamController = StreamController<List<UserModel>>.broadcast();
 
   Stream<List<AnnouncementModel>> get announcementsStream => _announcementsStreamController.stream;
   Stream<List<AppointmentModel>> get appointmentsStream => _appointmentsStreamController.stream;
@@ -47,6 +48,7 @@ class FirebaseService {
   Stream<UserModel?> get authStateChanges => _authStreamController.stream;
   Stream<List<PayrollModel>> get payrollsStream => _payrollsStreamController.stream;
   Stream<List<LeaveRequestModel>> get leaveRequestsStream => _leaveRequestsStreamController.stream;
+  Stream<List<UserModel>> get usersStream => _usersStreamController.stream;
 
   UserModel? get currentUser => _currentUser;
 
@@ -87,11 +89,17 @@ class FirebaseService {
         _dbRef!.child('users').onValue.listen((event) {
           final data = event.snapshot.value;
           final List<UserModel> fbList = [];
+          bool needsMigration = false;
+
           if (data is Map) {
             data.forEach((key, val) {
               if (val is Map) {
                 try {
-                  fbList.add(UserModel.fromMap(val, key.toString()));
+                  final user = UserModel.fromMap(val, key.toString());
+                  fbList.add(user);
+                  if (val['extension'] == null || val['employeeCode'] == null || val['department'] == null) {
+                    needsMigration = true;
+                  }
                 } catch (e) {
                   debugPrint("Error parsing user $key: $e");
                 }
@@ -102,7 +110,11 @@ class FirebaseService {
               final val = data[i];
               if (val is Map) {
                 try {
-                  fbList.add(UserModel.fromMap(val, i.toString()));
+                  final user = UserModel.fromMap(val, i.toString());
+                  fbList.add(user);
+                  if (val['extension'] == null || val['employeeCode'] == null || val['department'] == null) {
+                    needsMigration = true;
+                  }
                 } catch (e) {
                   debugPrint("Error parsing user at index $i: $e");
                 }
@@ -112,10 +124,27 @@ class FirebaseService {
           _localUsers.clear();
           _localUsers.addAll(fbList);
           _notifyUpdates();
+
+          if (needsMigration) {
+            _runUsersMigration(fbList);
+          }
         });
       } catch (e) {
         debugPrint("Error listening to users: $e");
       }
+    }
+  }
+
+  Future<void> _runUsersMigration(List<UserModel> users) async {
+    if (!_useFirebase || _dbRef == null) return;
+    try {
+      debugPrint("Kullanıcı şeması güncelleniyor (Background Migration)...");
+      for (final user in users) {
+        await _dbRef!.child('users').child(user.uid).set(user.toMap());
+      }
+      debugPrint("Kullanıcı şeması başarıyla güncellendi!");
+    } catch (e) {
+      debugPrint("Kullanıcı şeması güncelleme hatası: $e");
     }
   }
 
@@ -156,6 +185,9 @@ class FirebaseService {
         age: 28,
         role: "İK Çalışanı (Admin)",
         joinTimestamp: DateTime.now().subtract(const Duration(days: 830, hours: 2, minutes: 15, seconds: 30)).millisecondsSinceEpoch,
+        extension: "1001",
+        employeeCode: "IHH-101",
+        department: "İnsan Kaynakları",
       ),
       UserModel(
         uid: "uid_employee",
@@ -167,6 +199,9 @@ class FirebaseService {
         age: 34,
         role: "İHH Çalışanı",
         joinTimestamp: DateTime.now().subtract(const Duration(days: 432, hours: 4, minutes: 22, seconds: 10)).millisecondsSinceEpoch,
+        extension: "1002",
+        employeeCode: "IHH-102",
+        department: "Saha Operasyonları",
       ),
       UserModel(
         uid: "uid_employee2",
@@ -178,6 +213,79 @@ class FirebaseService {
         age: 26,
         role: "İHH Çalışanı",
         joinTimestamp: DateTime.now().subtract(const Duration(days: 185, hours: 1, minutes: 40, seconds: 15)).millisecondsSinceEpoch,
+        extension: "1003",
+        employeeCode: "IHH-103",
+        department: "Saha Operasyonları",
+      ),
+      UserModel(
+        uid: "uid_user_zahit",
+        name: "Mehmet Zahit",
+        surname: "Bal",
+        email: "zahit.bal@hane.org.tr",
+        phone: "+90 555 111 2233",
+        bloodGroup: "A Rh+",
+        age: 45,
+        role: "İHH Çalışanı",
+        joinTimestamp: DateTime.now().subtract(const Duration(days: 900)).millisecondsSinceEpoch,
+        extension: "1402",
+        employeeCode: "IHH-201",
+        department: "İnsan Kaynakları",
+      ),
+      UserModel(
+        uid: "uid_user_hakan",
+        name: "Hakan",
+        surname: "Yılmaz",
+        email: "hakan.yilmaz@hane.org.tr",
+        phone: "+90 532 987 6543",
+        bloodGroup: "B Rh-",
+        age: 39,
+        role: "İHH Çalışanı",
+        joinTimestamp: DateTime.now().subtract(const Duration(days: 720)).millisecondsSinceEpoch,
+        extension: "3105",
+        employeeCode: "IHH-202",
+        department: "Dış İlişkiler",
+      ),
+      UserModel(
+        uid: "uid_user_ayse",
+        name: "Ayşe",
+        surname: "Yılmaz",
+        email: "ayse.yilmaz@hane.org.tr",
+        phone: "+90 533 444 5566",
+        bloodGroup: "0 Rh+",
+        age: 42,
+        role: "İHH Çalışanı",
+        joinTimestamp: DateTime.now().subtract(const Duration(days: 600)).millisecondsSinceEpoch,
+        extension: "4001",
+        employeeCode: "IHH-203",
+        department: "Sağlık Birimi",
+      ),
+      UserModel(
+        uid: "uid_user_selim",
+        name: "Selim",
+        surname: "Can",
+        email: "selim.can@hane.org.tr",
+        phone: "+90 544 555 6677",
+        bloodGroup: "AB Rh+",
+        age: 31,
+        role: "İHH Çalışanı",
+        joinTimestamp: DateTime.now().subtract(const Duration(days: 500)).millisecondsSinceEpoch,
+        extension: "5012",
+        employeeCode: "IHH-204",
+        department: "Psikolojik Destek",
+      ),
+      UserModel(
+        uid: "uid_user_kemal",
+        name: "Kemal",
+        surname: "Kaya",
+        email: "kemal.kaya@hane.org.tr",
+        phone: "+90 505 666 7788",
+        bloodGroup: "A Rh-",
+        age: 36,
+        role: "İHH Çalışanı",
+        joinTimestamp: DateTime.now().subtract(const Duration(days: 400)).millisecondsSinceEpoch,
+        extension: "8021",
+        employeeCode: "IHH-205",
+        department: "Bilgi Teknolojileri",
       ),
     ]);
 
@@ -498,6 +606,7 @@ class FirebaseService {
     
     _notificationsStreamController.add(_localNotifications);
     _authStreamController.add(_currentUser);
+    _usersStreamController.add(_localUsers.toList()..sort((a, b) => a.name.compareTo(b.name)));
   }
 
   // --- AUTHENTICATION ---
