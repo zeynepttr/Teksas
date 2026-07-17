@@ -466,7 +466,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
 
           // Book Button
           CustomButton(
-            text: "Randevuyu Onayla",
+            text: "Randevu Al",
             width: double.infinity,
             isLoading: _isBooking,
             onPressed: _handleBookAppointment,

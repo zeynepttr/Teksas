@@ -233,6 +233,8 @@ class FirebaseService {
         description: "Tüm Hane çalışanlarına özel, Yemeksepeti siparişlerinde geçerli anında %20 indirim kodu. Alt limit 200 TL'dir.",
         code: "HANE20YS",
         logoUrl: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=300&auto=format&fit=crop",
+        isPermanent: false,
+        endDate: "2026-08-10",
       ),
       AgreementModel(
         id: "agr_2",
@@ -242,6 +244,7 @@ class FirebaseService {
         description: "Anlaşmalı Medical Park hastanelerinde muayene, tahlil, tetkik ve ameliyat işlemlerinde Hane personeline ve ailelerine özel %25 indirim fırsatı.",
         code: "HANEMEDICAL25",
         logoUrl: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=300&auto=format&fit=crop",
+        isPermanent: true,
       ),
       AgreementModel(
         id: "agr_3",
@@ -251,6 +254,7 @@ class FirebaseService {
         description: "Petrol Ofisi mobil uygulamasında kayıtlı Hane Kurumsal Taşıt Tanıma Sistemi ile akaryakıt alımlarında anında %5 indirim avantajı.",
         code: "HANEPO5",
         logoUrl: "https://images.unsplash.com/photo-1610491462702-42e6ecdabaa2?q=80&w=300&auto=format&fit=crop",
+        isPermanent: true,
       ),
       AgreementModel(
         id: "agr_4",
@@ -260,6 +264,8 @@ class FirebaseService {
         description: "Zinde kalmak için MacFit kulüplerine yapılacak yeni üyelik ve yenileme paketlerinde Hane personeline özel %15 ek indirim.",
         code: "HANEMAC15",
         logoUrl: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=300&auto=format&fit=crop",
+        isPermanent: false,
+        endDate: "2026-07-10",
       ),
       AgreementModel(
         id: "agr_5",
@@ -269,6 +275,8 @@ class FirebaseService {
         description: "Hafta içi saat 09:00 - 11:00 arasında tüm Starbucks mağazalarında alacağınız ilk kahveye ikincisi Hane daveti olarak hediye!",
         code: "HANESTAR1PLUS1",
         logoUrl: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=300&auto=format&fit=crop",
+        isPermanent: false,
+        endDate: "2026-07-25",
       ),
     ]);
 
@@ -790,16 +798,43 @@ class FirebaseService {
     if (_useFirebase) {
       try {
         final snapshot = await _dbRef!.child('partner_agreements').once();
-        if (snapshot.snapshot.value is Map) {
-          final Map data = snapshot.snapshot.value as Map;
-          final List<AgreementModel> fbList = [];
+        final data = snapshot.snapshot.value;
+        final List<AgreementModel> fbList = [];
+        bool needsMigration = false;
+        
+        if (data is Map) {
           data.forEach((key, value) {
             if (value is Map) {
-              fbList.add(AgreementModel.fromMap(value, key.toString()));
+              final model = AgreementModel.fromMap(value, key.toString());
+              fbList.add(model);
+              if (value['isPermanent'] == null) {
+                needsMigration = true;
+              }
             }
           });
+        } else if (data is List) {
+          for (int i = 0; i < data.length; i++) {
+            final value = data[i];
+            if (value is Map) {
+              final model = AgreementModel.fromMap(value, i.toString());
+              fbList.add(model);
+              if (value['isPermanent'] == null) {
+                needsMigration = true;
+              }
+            }
+          }
+        }
+        
+        if (fbList.isNotEmpty) {
           _localAgreements.clear();
           _localAgreements.addAll(fbList);
+          
+          if (needsMigration) {
+            debugPrint("Migrating partner agreements in Firebase...");
+            for (var agreement in fbList) {
+              await _dbRef!.child('partner_agreements').child(agreement.id).set(agreement.toMap());
+            }
+          }
         }
       } catch (e) {
         debugPrint("Error fetching agreements: $e");
