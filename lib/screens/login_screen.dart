@@ -74,49 +74,32 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   // Brand Logo Image
                   Container(
-                    width: 120,
-                    height: 120,
+                    width: 160,
+                    height: 160,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.transparent,
                       shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        )
-                      ],
-                      border: Border.all(color: AppColors.surfaceLight, width: 2),
+                     
+                     
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: Image.asset(
-                      'assets/logo.jpeg',
+                      'assets/logo2.png',
                       fit: BoxFit.cover,
                     ),
                   ),
                   const SizedBox(height: 24),
                   
-                  // Brand Name
-                  const Text(
-                    "Hane",
-                    style: TextStyle(
-                      fontFamily: 'DINPro',
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkGreen,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
+                  
                   
                   // Welcome slogan
                   const Text(
                     "Hane'nize Hoşgeldiniz!",
                     style: TextStyle(
-                      fontFamily: 'DINPro',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textSecondary,
+                      fontFamily: 'Quicksand',
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.oliveGreen,
                     ),
                   ),
                   const SizedBox(height: 48),
