@@ -83,6 +83,7 @@ class FirebaseService {
         bloodGroup: "A Rh+",
         age: 28,
         role: "İK Çalışanı (Admin)",
+        joinTimestamp: DateTime.now().subtract(const Duration(days: 830, hours: 2, minutes: 15, seconds: 30)).millisecondsSinceEpoch,
       ),
       UserModel(
         uid: "uid_employee",
@@ -93,6 +94,7 @@ class FirebaseService {
         bloodGroup: "0 Rh-",
         age: 34,
         role: "İHH Çalışanı",
+        joinTimestamp: DateTime.now().subtract(const Duration(days: 432, hours: 4, minutes: 22, seconds: 10)).millisecondsSinceEpoch,
       ),
       UserModel(
         uid: "uid_employee2",
@@ -103,6 +105,7 @@ class FirebaseService {
         bloodGroup: "B Rh+",
         age: 26,
         role: "İHH Çalışanı",
+        joinTimestamp: DateTime.now().subtract(const Duration(days: 185, hours: 1, minutes: 40, seconds: 15)).millisecondsSinceEpoch,
       ),
     ]);
 

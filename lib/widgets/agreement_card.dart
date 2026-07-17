@@ -16,6 +16,7 @@ class AgreementCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
+      elevation: 1,
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -28,8 +29,9 @@ class AgreementCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start, // Align to top
             children: [
-              // Logo image
+              // 1. Logo image on the left
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
@@ -49,96 +51,109 @@ class AgreementCard extends StatelessWidget {
                         ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 14),
               
-              // Text information
+              // 2. Details Column filling the rest of the width
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Category Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.oliveGreen.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppColors.oliveGreen.withOpacity(0.4), width: 0.5),
-                      ),
-                      child: Text(
-                        agreement.category.toUpperCase(),
-                        style: const TextStyle(
-                          color: AppColors.oliveGreen,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
+                    // Top Row: Category on left, Discount Rate on right
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Category Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.oliveGreen.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: AppColors.oliveGreen.withOpacity(0.3), width: 0.5),
+                          ),
+                          child: Text(
+                            agreement.category.toUpperCase(),
+                            style: const TextStyle(
+                              color: AppColors.oliveGreen,
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
+                        // Discount Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.buttonLight,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            agreement.discountRate,
+                            style: const TextStyle(
+                              fontFamily: 'DINPro',
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkGreen,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    
+                    // Middle: Company Name (can wrap safely now)
+                    Text(
+                      agreement.companyName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: 'DINPro',
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                        height: 1.2,
                       ),
                     ),
                     const SizedBox(height: 6),
                     
-                    // Company Name
-                    Text(
-                      agreement.companyName,
-                      style: const TextStyle(
-                        fontFamily: 'DINPro',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    
-                    // Description snippet
-                    Text(
-                      agreement.description,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontFamily: 'DINPro',
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
+                    // Bottom Row: Description on left, "Kodu Al >" on right
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Description snippet
+                        Expanded(
+                          child: Text(
+                            agreement.description,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontFamily: 'DINPro',
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        // Kodu Al link
+                        const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "Kodu Al",
+                              style: TextStyle(
+                                color: AppColors.accent,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Icon(Icons.chevron_right, size: 12, color: AppColors.accent),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              
-              // Discount Rate highlight
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.buttonLight,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      agreement.discountRate,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'DINPro',
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkGreen,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Row(
-                    children: [
-                      Text(
-                        "Kodu Al",
-                        style: TextStyle(
-                          color: AppColors.accent,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Icon(Icons.chevron_right, size: 12, color: AppColors.accent),
-                    ],
-                  ),
-                ],
               ),
             ],
           ),

@@ -33,8 +33,8 @@ class _DashboardPageState extends State<DashboardPage> {
       "image": "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=300&auto=format&fit=crop"
     },
     {
-      "title": "Hane Sağlık & Esenlik\nAI Asistanı Aktif! 🩺🧠",
-      "desc": "Şikayetlerinizi asistanımıza yazın, sizi doğru hekime veya psikoloğa yönlendirsin.",
+      "title": "Hane Sağlık & Esenlik\nRandevusu Alın! 🩺🧠",
+      "desc": "Kurum hekimimiz veya psikoloğumuzdan hızlıca randevu alın, sağlığınızı koruyun.",
       "image": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=300&auto=format&fit=crop"
     }
   ];
@@ -227,7 +227,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 _buildWideCard(
                   title: "Ayrıcalıklar",
                   subtitle: "Anlaşmalı indirimler & hediye kodları",
-                  imageUrl: "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=600&auto=format&fit=crop",
+                  imageUrl: "https://images.unsplash.com/photo-1512909006721-3d6018887383?q=80&w=800&auto=format&fit=crop",
                   onTap: () {
                     widget.onNavigateToTab(1); // Navigates to tab 1 (Ayrıcalıklar)
                   },
@@ -247,7 +247,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       title: "Aramızda",
                       subtitle: "İkinci el pazarı",
                       icon: Icons.handshake_outlined,
-                      imageUrl: "https://images.unsplash.com/photo-1516259762381-22954d7d3ad2?q=80&w=300&auto=format&fit=crop",
+                      imageUrl: "https://images.unsplash.com/photo-1556740749-887f6717d7e4?q=80&w=800&auto=format&fit=crop",
                       onTap: () {
                         Navigator.push(
                           context,
@@ -257,9 +257,9 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     _buildGridCard(
                       title: "Doktorum Nerede",
-                      subtitle: "AI Wellness Triage",
+                      subtitle: "Randevu Planlama",
                       icon: Icons.psychology_outlined,
-                      imageUrl: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=300&auto=format&fit=crop",
+                      imageUrl: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=800&auto=format&fit=crop",
                       onTap: () {
                         Navigator.push(
                           context,
@@ -271,7 +271,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       title: "Rehber",
                       subtitle: "Kurumsal iletişim",
                       icon: Icons.contact_phone_outlined,
-                      imageUrl: "https://images.unsplash.com/photo-1423666639041-f56000c27a9a?q=80&w=300&auto=format&fit=crop",
+                      imageUrl: "https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=800&auto=format&fit=crop",
                       onTap: () {
                         Navigator.push(
                           context,
@@ -280,10 +280,10 @@ class _DashboardPageState extends State<DashboardPage> {
                       },
                     ),
                     _buildGridCard(
-                      title: "Kanka",
+                      title: "KanKardeşim",
                       subtitle: "Acil kan talebi",
                       icon: Icons.favorite_border,
-                      imageUrl: "https://images.unsplash.com/photo-1615461066841-4a10de78f9a8?q=80&w=300&auto=format&fit=crop",
+                      imageUrl: "https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=800&auto=format&fit=crop",
                       onTap: () {
                         _showKankaDialog(context);
                       },

@@ -210,9 +210,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Cover Campaign Banner
-            _buildCampaignBanner(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
             // 2. Horizontal Categories
             const Padding(
@@ -270,90 +268,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     );
   }
 
-  Widget _buildCampaignBanner() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      height: 140,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF00ACC1), Color(0xFF0EA5E9)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          // Banner graphics background
-          Positioned(
-            right: -20,
-            bottom: -30,
-            child: CircleAvatar(
-              radius: 90,
-              backgroundColor: Colors.white.withOpacity(0.08),
-            ),
-          ),
-          Positioned(
-            right: 16,
-            bottom: 10,
-            top: 10,
-            child: Opacity(
-              opacity: 0.85,
-              child: Image.network(
-                "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=250&auto=format&fit=crop",
-                width: 110,
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          // Texts
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  "Bu Yaz Bazı Şeyleri\nSerbest Bırakıyoruz! 🧺",
-                  style: TextStyle(
-                    fontFamily: 'DINPro',
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    height: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  "Dolabında sırasını bekleyen kıyafetleri sat.",
-                  style: TextStyle(fontSize: 10, color: Colors.white70),
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFC782B9), // Purple button matching screenshot 4
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    minimumSize: Size.zero,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _currentIndex = 2; // Jump to Add Listing
-                    });
-                  },
-                  child: const Text(
-                    "Hemen İlan Ver",
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildCategoriesRow() {
     final categories = [

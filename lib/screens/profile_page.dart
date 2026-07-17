@@ -42,9 +42,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   // Unsplash preset URLs to allow realistic mock requests
   final Map<String, String> _presetImages = {
-    'wedding': 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=600&auto=format&fit=crop',
-    'celebration': 'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=600&auto=format&fit=crop',
-    'general': 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=600&auto=format&fit=crop',
+    'wedding': 'https://images.unsplash.com/photo-1607344645866-009c320c5ab8?q=80&w=400&auto=format&fit=crop',
+    'celebration': 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=400&auto=format&fit=crop',
+    'general': 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=400&auto=format&fit=crop',
   };
 
   @override

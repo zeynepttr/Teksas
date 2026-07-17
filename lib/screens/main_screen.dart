@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
-import '../widgets/sidebar_drawer.dart';
 import 'dashboard_page.dart';
 import 'timeline_page.dart';
 import 'privileges_page.dart';
@@ -58,12 +57,6 @@ class _MainScreenState extends State<MainScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              leading: IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () {
-                  _scaffoldKey.currentState?.openDrawer();
-                },
-              ),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.notifications_none),
@@ -75,13 +68,6 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ],
             ),
-      drawer: SidebarDrawer(
-        onNavigateToTab: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-      ),
       body: IndexedStack(
         index: _currentIndex,
         children: _pages,

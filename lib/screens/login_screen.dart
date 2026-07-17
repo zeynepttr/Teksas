@@ -72,32 +72,26 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Vector Logo
+                  // Brand Logo Image
                   Container(
-                    width: 100,
-                    height: 100,
+                    width: 120,
+                    height: 120,
                     decoration: BoxDecoration(
-                      color: AppColors.darkGreen,
+                      color: Colors.white,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.darkGreen.withOpacity(0.4),
+                          color: Colors.black.withOpacity(0.08),
                           blurRadius: 20,
-                          offset: const Offset(0, 10),
+                          offset: const Offset(0, 8),
                         )
                       ],
+                      border: Border.all(color: AppColors.surfaceLight, width: 2),
                     ),
-                    child: const Center(
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Icon(Icons.home_rounded, color: Colors.white, size: 50),
-                          Positioned(
-                            bottom: 12,
-                            child: Icon(Icons.favorite, color: AppColors.accent, size: 20),
-                          ),
-                        ],
-                      ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Image.asset(
+                      'assets/logo.jpeg',
+                      fit: BoxFit.cover,
                     ),
                   ),
                   const SizedBox(height: 24),
