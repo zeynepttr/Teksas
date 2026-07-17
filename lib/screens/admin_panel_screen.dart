@@ -19,6 +19,7 @@ class AdminPanelScreen extends StatefulWidget {
 class _AdminPanelScreenState extends State<AdminPanelScreen> {
   final FirebaseService _firebaseService = FirebaseService();
   int _currentIndex = 0;
+  int _crmViewIndex = 0; // 0: List, 1: Reporting & Analytics
   List<AnnouncementModel> _pendingRequests = [];
   bool _isLoadingRequests = false;
 
@@ -235,16 +236,21 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.admin_panel_settings,
-                    color: Colors.white,
-                    size: 28,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    'assets/logo2.png',
+                    width: 44,
+                    height: 44,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 44,
+                        height: 44,
+                        color: Colors.white.withOpacity(0.1),
+                        child: const Icon(Icons.admin_panel_settings, color: Colors.white),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -745,10 +751,109 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
     return Column(
       children: [
+        // View Toggle Segment
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceLight,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.surfaceLight, width: 1.5),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              _crmViewIndex = 0;
+                            });
+                          },
+                          child: Container(
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: _crmViewIndex == 0 ? AppColors.buttonDark : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              "Çalışan Listesi",
+                              style: TextStyle(
+                                fontFamily: 'DINPro',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                color: _crmViewIndex == 0 ? Colors.white : AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              _crmViewIndex = 1;
+                            });
+                          },
+                          child: Container(
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: _crmViewIndex == 1 ? AppColors.buttonDark : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.analytics_outlined,
+                                  size: 14,
+                                  color: _crmViewIndex == 1 ? Colors.white : AppColors.textSecondary,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  "Raporlama & Analiz",
+                                  style: TextStyle(
+                                    fontFamily: 'DINPro',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                    color: _crmViewIndex == 1 ? Colors.white : AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Body Switcher
+        Expanded(
+          child: _crmViewIndex == 0 
+            ? _buildCrmListSection(employees)
+            : _buildCrmAnalyticsSection(employees),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCrmListSection(List<UserModel> employees) {
+    final bool isWideScreen = MediaQuery.of(context).size.width > 900;
+    
+    return Column(
+      children: [
         // CRM Stats Card
         Container(
           width: double.infinity,
-          margin: const EdgeInsets.all(16),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             gradient: AppColors.primaryGradient,
@@ -788,34 +893,347 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         Expanded(
           child: employees.isEmpty
               ? const Center(child: Text("Sistemde kayıtlı çalışan bulunmamaktadır.", style: TextStyle(color: AppColors.textSecondary)))
-              : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: employees.length,
-                  itemBuilder: (context, index) {
-                    final emp = employees[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: AppColors.surfaceLight,
-                          child: Text(
-                            emp.name.substring(0, 1).toUpperCase(),
-                            style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        title: Text(emp.fullName, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                        subtitle: Text("${emp.role}\n📞 ${emp.phone}", style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                        isThreeLine: true,
-                        trailing: IconButton(
-                          icon: const Icon(Icons.edit, color: AppColors.accent),
-                          onPressed: () => _showEditEmployeeDialog(emp),
-                        ),
+              : isWideScreen
+                  ? GridView.builder(
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 350,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                        childAspectRatio: 1.8,
                       ),
-                    );
-                  },
-                ),
+                      itemCount: employees.length,
+                      itemBuilder: (context, index) {
+                        final emp = employees[index];
+                        return Card(
+                          margin: EdgeInsets.zero,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: AppColors.surfaceLight,
+                                      child: Text(
+                                        emp.name.isNotEmpty ? emp.name.substring(0, 1).toUpperCase() : 'Ç',
+                                        style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            emp.fullName,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 15),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            emp.role,
+                                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.edit, color: AppColors.accent, size: 18),
+                                      onPressed: () => _showEditEmployeeDialog(emp),
+                                    ),
+                                  ],
+                                ),
+                                const Spacer(),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.phone, size: 14, color: AppColors.textMuted),
+                                    const SizedBox(width: 6),
+                                    Text(emp.phone, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.email, size: 14, color: AppColors.textMuted),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        emp.email,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: employees.length,
+                      itemBuilder: (context, index) {
+                        final emp = employees[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: AppColors.surfaceLight,
+                              child: Text(
+                                emp.name.isNotEmpty ? emp.name.substring(0, 1).toUpperCase() : 'Ç',
+                                style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            title: Text(emp.fullName, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                            subtitle: Text("${emp.role}\n📞 ${emp.phone}", style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                            isThreeLine: true,
+                            trailing: IconButton(
+                              icon: const Icon(Icons.edit, color: AppColors.accent),
+                              onPressed: () => _showEditEmployeeDialog(emp),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCrmAnalyticsSection(List<UserModel> employees) {
+    if (employees.isEmpty) {
+      return const Center(child: Text("Analiz edilecek çalışan bulunmamaktadır.", style: TextStyle(color: AppColors.textSecondary)));
+    }
+
+    // 1. Calculate statistics
+    double totalAge = 0;
+    final Map<String, int> deptCounts = {};
+    final Map<String, int> bloodCounts = {};
+    final Map<String, int> roleCounts = {};
+
+    for (var emp in employees) {
+      totalAge += emp.age;
+      
+      final dept = emp.department.trim().isEmpty ? "Saha Operasyonları" : emp.department.trim();
+      deptCounts[dept] = (deptCounts[dept] ?? 0) + 1;
+
+      final blood = emp.bloodGroup.trim().toUpperCase().isEmpty ? "A RH+" : emp.bloodGroup.trim().toUpperCase();
+      bloodCounts[blood] = (bloodCounts[blood] ?? 0) + 1;
+
+      final role = emp.role.trim().isEmpty ? "İHH Çalışanı" : emp.role.trim();
+      roleCounts[role] = (roleCounts[role] ?? 0) + 1;
+    }
+
+    final double avgAge = totalAge / employees.length;
+
+    // Find largest department
+    String largestDept = "Belirsiz";
+    int maxDeptCount = 0;
+    deptCounts.forEach((key, val) {
+      if (val > maxDeptCount) {
+        maxDeptCount = val;
+        largestDept = key;
+      }
+    });
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Row of Metric Cards
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final double cardWidth = (constraints.maxWidth - 24) / 2; // fits 2 in a row on mobile
+              final bool isWide = constraints.maxWidth > 600;
+              
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  _buildMetricCard("Toplam Kadro", "${employees.length} Kişi", Icons.people, AppColors.accent, isWide ? 180 : cardWidth),
+                  _buildMetricCard("Yaş Ortalaması", avgAge.toStringAsFixed(1), Icons.cake, Colors.orange, isWide ? 180 : cardWidth),
+                  _buildMetricCard("Merkez Birim", largestDept, Icons.business, Colors.blue, isWide ? 220 : double.infinity),
+                  _buildMetricCard("Kadro Durumu", "Aktif Çalışıyor", Icons.check_circle, Colors.teal, isWide ? 170 : cardWidth),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 24),
+
+          // Department Distribution Chart (Horizontal Bars)
+          _buildChartContainer(
+            "Birim / Departman Dağılımı",
+            Column(
+              children: deptCounts.entries.map((entry) {
+                final double percent = entry.value / employees.length;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary)),
+                          Text("${entry.value} Çalışan (${(percent * 100).toStringAsFixed(0)}%)", style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Stack(
+                        children: [
+                          Container(
+                            height: 8,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceLight,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          FractionallySizedBox(
+                            widthFactor: percent,
+                            child: Container(
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: AppColors.accent,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Emergency Blood Type Counts
+          _buildChartContainer(
+            "Acil Durum Kan Grubu Havuzu",
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: bloodCounts.entries.map((entry) {
+                return Container(
+                  width: 90,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.surfaceLight),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        entry.key,
+                        style: const TextStyle(
+                          fontFamily: 'DINPro',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.redAccent,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "${entry.value} Kişi",
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricCard(String label, String value, IconData icon, Color color, double width) {
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.surfaceLight),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.01),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: color.withOpacity(0.1),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'DINPro',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChartContainer(String title, Widget child) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.surfaceLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontFamily: 'DINPro',
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          child,
+        ],
+      ),
     );
   }
 
@@ -1046,7 +1464,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final employees = _firebaseService.getAllEmployees();
 
     return StreamBuilder<List<PayrollModel>>(
-      stream: _firebaseService.payrollsStream,
+      stream: _firebaseService.adminPayrollsStream,
+      initialData: _firebaseService.getAllPayrolls(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
           return const Center(child: CircularProgressIndicator(color: AppColors.buttonDark));
@@ -1273,7 +1692,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   Widget _buildLeaveRequestsTab() {
     return StreamBuilder<List<LeaveRequestModel>>(
-      stream: _firebaseService.leaveRequestsStream,
+      stream: _firebaseService.adminLeaveRequestsStream,
+      initialData: _firebaseService.getAllLeaveRequests(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
           return const Center(child: CircularProgressIndicator(color: AppColors.buttonDark));

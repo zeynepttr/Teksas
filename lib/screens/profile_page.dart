@@ -592,6 +592,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildAppointmentsList() {
     return StreamBuilder<List<AppointmentModel>>(
       stream: _firebaseService.appointmentsStream,
+      initialData: _firebaseService.getMyAppointments(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
           return const Center(child: CircularProgressIndicator(color: AppColors.buttonDark));
@@ -645,6 +646,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildProfilePayrolls() {
     return StreamBuilder<List<PayrollModel>>(
       stream: _firebaseService.payrollsStream,
+      initialData: _firebaseService.getMyPayrolls(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
           return const Center(child: CircularProgressIndicator(color: AppColors.buttonDark));
@@ -856,6 +858,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
         StreamBuilder<List<LeaveRequestModel>>(
           stream: _firebaseService.leaveRequestsStream,
+          initialData: _firebaseService.getMyLeaveRequests(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
               return const Center(child: CircularProgressIndicator(color: AppColors.buttonDark));

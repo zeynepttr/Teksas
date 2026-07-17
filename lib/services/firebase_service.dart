@@ -40,6 +40,8 @@ class FirebaseService {
   final _payrollsStreamController = StreamController<List<PayrollModel>>.broadcast();
   final _leaveRequestsStreamController = StreamController<List<LeaveRequestModel>>.broadcast();
   final _usersStreamController = StreamController<List<UserModel>>.broadcast();
+  final _adminPayrollsStreamController = StreamController<List<PayrollModel>>.broadcast();
+  final _adminLeaveRequestsStreamController = StreamController<List<LeaveRequestModel>>.broadcast();
 
   Stream<List<AnnouncementModel>> get announcementsStream => _announcementsStreamController.stream;
   Stream<List<AppointmentModel>> get appointmentsStream => _appointmentsStreamController.stream;
@@ -49,6 +51,8 @@ class FirebaseService {
   Stream<List<PayrollModel>> get payrollsStream => _payrollsStreamController.stream;
   Stream<List<LeaveRequestModel>> get leaveRequestsStream => _leaveRequestsStreamController.stream;
   Stream<List<UserModel>> get usersStream => _usersStreamController.stream;
+  Stream<List<PayrollModel>> get adminPayrollsStream => _adminPayrollsStreamController.stream;
+  Stream<List<LeaveRequestModel>> get adminLeaveRequestsStream => _adminLeaveRequestsStreamController.stream;
 
   UserModel? get currentUser => _currentUser;
 
@@ -584,24 +588,32 @@ class FirebaseService {
     
     // Payroll stream updates
     if (_currentUser != null) {
-      if (_currentUser!.isAdmin) {
-        _payrollsStreamController.add(_localPayrolls.toList()..sort((a, b) => b.year == a.year ? b.month.compareTo(a.month) : b.year.compareTo(a.year)));
-      } else {
-        _payrollsStreamController.add(_localPayrolls.where((p) => p.userId == _currentUser!.uid).toList()..sort((a, b) => b.year == a.year ? b.month.compareTo(a.month) : b.year.compareTo(a.year)));
-      }
+      _payrollsStreamController.add(
+        _localPayrolls.where((p) => p.userId == _currentUser!.uid).toList()
+          ..sort((a, b) => b.year == a.year ? b.month.compareTo(a.month) : b.year.compareTo(a.year))
+      );
+      _adminPayrollsStreamController.add(
+        _localPayrolls.toList()
+          ..sort((a, b) => b.year == a.year ? b.month.compareTo(a.month) : b.year.compareTo(a.year))
+      );
     } else {
       _payrollsStreamController.add([]);
+      _adminPayrollsStreamController.add([]);
     }
 
     // Leave request stream updates
     if (_currentUser != null) {
-      if (_currentUser!.isAdmin) {
-        _leaveRequestsStreamController.add(_localLeaveRequests.toList()..sort((a, b) => b.timestamp.compareTo(a.timestamp)));
-      } else {
-        _leaveRequestsStreamController.add(_localLeaveRequests.where((l) => l.userId == _currentUser!.uid).toList()..sort((a, b) => b.timestamp.compareTo(a.timestamp)));
-      }
+      _leaveRequestsStreamController.add(
+        _localLeaveRequests.where((l) => l.userId == _currentUser!.uid).toList()
+          ..sort((a, b) => b.timestamp.compareTo(a.timestamp))
+      );
+      _adminLeaveRequestsStreamController.add(
+        _localLeaveRequests.toList()
+          ..sort((a, b) => b.timestamp.compareTo(a.timestamp))
+      );
     } else {
       _leaveRequestsStreamController.add([]);
+      _adminLeaveRequestsStreamController.add([]);
     }
     
     _notificationsStreamController.add(_localNotifications);
@@ -1212,6 +1224,33 @@ class FirebaseService {
 
   List<UserModel> getAllEmployees() {
     return _localUsers.where((u) => u.uid != 'uid_admin').toList();
+  }
+
+  List<PayrollModel> getMyPayrolls() {
+    if (_currentUser == null) return [];
+    return _localPayrolls.where((p) => p.userId == _currentUser!.uid).toList()
+      ..sort((a, b) => b.year == a.year ? b.month.compareTo(a.month) : b.year.compareTo(a.year));
+  }
+
+  List<PayrollModel> getAllPayrolls() {
+    return _localPayrolls.toList()
+      ..sort((a, b) => b.year == a.year ? b.month.compareTo(a.month) : b.year.compareTo(a.year));
+  }
+
+  List<LeaveRequestModel> getMyLeaveRequests() {
+    if (_currentUser == null) return [];
+    return _localLeaveRequests.where((l) => l.userId == _currentUser!.uid).toList()
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  }
+
+  List<LeaveRequestModel> getAllLeaveRequests() {
+    return _localLeaveRequests.toList()
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  }
+
+  List<AppointmentModel> getMyAppointments() {
+    if (_currentUser == null) return [];
+    return _localAppointments.where((a) => a.userId == _currentUser!.uid).toList();
   }
 
   Future<void> addEmployee(UserModel user) async {
