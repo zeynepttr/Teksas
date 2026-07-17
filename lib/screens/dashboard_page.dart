@@ -247,7 +247,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       title: "Aramızda",
                       subtitle: "İkinci el pazarı",
                       icon: Icons.handshake_outlined,
-                      imageUrl: "https://images.unsplash.com/photo-1556740749-887f6717d7e4?q=80&w=800&auto=format&fit=crop",
+                      imageUrl: "https://ares.shiftdelete.net/2025/03/5656.jpg",
                       onTap: () {
                         Navigator.push(
                           context,

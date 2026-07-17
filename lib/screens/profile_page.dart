@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../models/appointment_model.dart';
+import '../models/payroll_model.dart';
+import '../models/leave_request_model.dart';
 import '../services/firebase_service.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
@@ -58,6 +60,8 @@ class _ProfilePageState extends State<ProfilePage> {
     _bloodGroupController = TextEditingController(text: user?.bloodGroup);
     
     _firebaseService.getAppointments();
+    _firebaseService.getPayrolls();
+    _firebaseService.getLeaveRequests();
   }
 
   @override
@@ -287,13 +291,18 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
 
           // 3. Sub-navigation tabs
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildSubTab(0, "Bilgilerim & Düzenle", Icons.edit_note),
-              _buildSubTab(1, "Paylaşım İsteği", Icons.add_photo_alternate_outlined),
-              _buildSubTab(2, "Randevularım", Icons.calendar_today_outlined),
-            ],
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                _buildSubTab(0, "Bilgilerim", Icons.edit_note),
+                _buildSubTab(1, "Paylaşım İsteği", Icons.add_photo_alternate_outlined),
+                _buildSubTab(2, "Randevularım", Icons.calendar_today_outlined),
+                _buildSubTab(3, "Bordrolarım", Icons.receipt_long_outlined),
+                _buildSubTab(4, "İzin Taleplerim", Icons.time_to_leave_outlined),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
 
@@ -301,6 +310,8 @@ class _ProfilePageState extends State<ProfilePage> {
           if (_activeSubSection == 0) _buildProfileEditForm(),
           if (_activeSubSection == 1) _buildAnnouncementRequestForm(),
           if (_activeSubSection == 2) _buildAppointmentsList(),
+          if (_activeSubSection == 3) _buildProfilePayrolls(),
+          if (_activeSubSection == 4) _buildProfileLeaveRequests(),
         ],
       ),
     );
@@ -308,7 +319,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildSubTab(int index, String title, IconData icon) {
     final isSelected = _activeSubSection == index;
-    return Expanded(
+    return Container(
+      width: 90,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
       child: GestureDetector(
         onTap: () {
           setState(() {
@@ -316,7 +329,6 @@ class _ProfilePageState extends State<ProfilePage> {
           });
         },
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 4),
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
           decoration: BoxDecoration(
             color: isSelected ? AppColors.surfaceLight : AppColors.surface,
@@ -335,10 +347,12 @@ class _ProfilePageState extends State<ProfilePage> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: 'DINPro',
-                  fontSize: 10,
+                  fontSize: 9,
                   fontWeight: FontWeight.bold,
                   color: isSelected ? Colors.white : AppColors.textSecondary,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -625,6 +639,291 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildProfilePayrolls() {
+    return StreamBuilder<List<PayrollModel>>(
+      stream: _firebaseService.payrollsStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator(color: AppColors.buttonDark));
+        }
+
+        final payrolls = snapshot.data ?? [];
+
+        if (payrolls.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 32),
+              child: Column(
+                children: [
+                  Icon(Icons.receipt_long, color: AppColors.textMuted, size: 48),
+                  SizedBox(height: 12),
+                  Text(
+                    "Adınıza kayıtlı maaş bordrosu bulunmuyor.",
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Maaş Bordrolarım",
+              style: TextStyle(fontFamily: 'DINPro', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 12),
+            ...payrolls.map((pay) {
+              final double totalPaid = pay.netSalary + pay.allowances - pay.deductions;
+              return Card(
+                margin: const EdgeInsets.only(bottom: 16),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "HANE İNSANİ YARDIM DERNEĞİ",
+                                style: TextStyle(fontFamily: 'DINPro', fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.accent),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                "${pay.month} ${pay.year} Bordrosu",
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              "ÖDENDİ",
+                              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 10, letterSpacing: 0.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text("Net Maaş", style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                          Text("${pay.netSalary.toStringAsFixed(0)} TL", style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text("Sosyal Yardım / Ek Ödeme", style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                          Text("+${pay.allowances.toStringAsFixed(0)} TL", style: const TextStyle(fontSize: 13, color: Colors.green, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text("Vergi & Diğer Kesintiler", style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                          Text("-${pay.deductions.toStringAsFixed(0)} TL", style: const TextStyle(fontSize: 13, color: Colors.red, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const Divider(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Net Ödenen Tutar",
+                            style: TextStyle(fontFamily: 'DINPro', fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+                          ),
+                          Text(
+                            "${totalPaid.toStringAsFixed(0)} TL",
+                            style: const TextStyle(fontFamily: 'DINPro', fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.darkGreen),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildProfileLeaveRequests() {
+    final leaveTypeCtrl = TextEditingController(text: "Yıllık İzin");
+    final startDateCtrl = TextEditingController(text: "2026-08-10");
+    final endDateCtrl = TextEditingController(text: "2026-08-15");
+    final durationCtrl = TextEditingController(text: "5");
+    final reasonCtrl = TextEditingController();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Yeni İzin Talebinde Bulun",
+                  style: TextStyle(fontFamily: 'DINPro', fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: leaveTypeCtrl.text,
+                  decoration: const InputDecoration(
+                    labelText: "İzin Türü",
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'Yıllık İzin', child: Text('Yıllık İzin')),
+                    DropdownMenuItem(value: 'Sağlık İzni', child: Text('Sağlık İzni')),
+                    DropdownMenuItem(value: 'Mazeret İzni', child: Text('Mazeret İzni')),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) leaveTypeCtrl.text = val;
+                  },
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(child: CustomTextField(controller: startDateCtrl, labelText: "Başlangıç", hintText: "YYYY-MM-DD")),
+                    const SizedBox(width: 12),
+                    Expanded(child: CustomTextField(controller: endDateCtrl, labelText: "Bitiş", hintText: "YYYY-MM-DD")),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                CustomTextField(controller: durationCtrl, labelText: "Süre (Gün)", hintText: "Süre", keyboardType: TextInputType.number),
+                const SizedBox(height: 12),
+                CustomTextField(controller: reasonCtrl, labelText: "Gerekçe / Açıklama", hintText: "İzin alma nedeniniz..."),
+                const SizedBox(height: 16),
+                CustomButton(
+                  text: "İzin Talebini Gönder",
+                  width: double.infinity,
+                  onPressed: () async {
+                    if (reasonCtrl.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Lütfen gerekçe belirtin."), backgroundColor: AppColors.error),
+                      );
+                      return;
+                    }
+                    await _firebaseService.submitLeaveRequest(
+                      leaveType: leaveTypeCtrl.text,
+                      startDate: startDateCtrl.text,
+                      endDate: endDateCtrl.text,
+                      durationDays: int.tryParse(durationCtrl.text) ?? 1,
+                      reason: reasonCtrl.text,
+                    );
+                    reasonCtrl.clear();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("İzin talebiniz başarıyla İK birimine iletilmiştir."), backgroundColor: AppColors.buttonDark),
+                      );
+                      setState(() {});
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 24),
+
+        const Text(
+          "İzin Taleplerim & Geçmiş",
+          style: TextStyle(fontFamily: 'DINPro', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        ),
+        const SizedBox(height: 12),
+
+        StreamBuilder<List<LeaveRequestModel>>(
+          stream: _firebaseService.leaveRequestsStream,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator(color: AppColors.buttonDark));
+            }
+
+            final requests = snapshot.data ?? [];
+
+            if (requests.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                  child: Text(
+                    "Kayıtlı izin talebiniz bulunmuyor.",
+                    style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                  ),
+                ),
+              );
+            }
+
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: requests.length,
+              itemBuilder: (context, index) {
+                final req = requests[index];
+                Color statusColor = Colors.orange;
+                String statusLabel = "Bekliyor";
+
+                if (req.status == 'approved') {
+                  statusColor = Colors.green;
+                  statusLabel = "Onaylandı";
+                } else if (req.status == 'rejected') {
+                  statusColor = Colors.red;
+                  statusLabel = "Reddedildi";
+                }
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ListTile(
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(req.leaveType, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: statusColor.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            statusLabel,
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: statusColor),
+                          ),
+                        ),
+                      ],
+                    ),
+                    subtitle: Text(
+                      "Tarih: ${req.startDate} / ${req.endDate} (${req.durationDays} Gün)\nGerekçe: ${req.reason}",
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    isThreeLine: true,
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
     );
   }
 }

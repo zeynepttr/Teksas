@@ -9,6 +9,8 @@ import '../models/announcement_model.dart';
 import '../models/agreement_model.dart';
 import '../models/appointment_model.dart';
 import '../models/listing_model.dart';
+import '../models/payroll_model.dart';
+import '../models/leave_request_model.dart';
 
 class FirebaseService {
   static final FirebaseService _instance = FirebaseService._internal();
@@ -26,6 +28,8 @@ class FirebaseService {
   final List<AppointmentModel> _localAppointments = [];
   final List<ListingModel> _localListings = [];
   final List<Map<String, dynamic>> _localNotifications = [];
+  final List<PayrollModel> _localPayrolls = [];
+  final List<LeaveRequestModel> _localLeaveRequests = [];
 
   // Stream controllers to push real-time updates to UI
   final _announcementsStreamController = StreamController<List<AnnouncementModel>>.broadcast();
@@ -33,12 +37,16 @@ class FirebaseService {
   final _listingsStreamController = StreamController<List<ListingModel>>.broadcast();
   final _notificationsStreamController = StreamController<List<Map<String, dynamic>>>.broadcast();
   final _authStreamController = StreamController<UserModel?>.broadcast();
+  final _payrollsStreamController = StreamController<List<PayrollModel>>.broadcast();
+  final _leaveRequestsStreamController = StreamController<List<LeaveRequestModel>>.broadcast();
 
   Stream<List<AnnouncementModel>> get announcementsStream => _announcementsStreamController.stream;
   Stream<List<AppointmentModel>> get appointmentsStream => _appointmentsStreamController.stream;
   Stream<List<ListingModel>> get listingsStream => _listingsStreamController.stream;
   Stream<List<Map<String, dynamic>>> get notificationsStream => _notificationsStreamController.stream;
   Stream<UserModel?> get authStateChanges => _authStreamController.stream;
+  Stream<List<PayrollModel>> get payrollsStream => _payrollsStreamController.stream;
+  Stream<List<LeaveRequestModel>> get leaveRequestsStream => _leaveRequestsStreamController.stream;
 
   UserModel? get currentUser => _currentUser;
 
@@ -56,6 +64,8 @@ class FirebaseService {
         
         _useFirebase = true;
         debugPrint("Firebase Realtime Database initialized successfully. URL: $dbUrl");
+        fetchEmployees();
+        _checkAndSeedDatabase();
       } else {
         debugPrint("Firebase not initialized. Falling back to Simulated Realtime Database.");
         _useFirebase = false;
@@ -71,7 +81,69 @@ class FirebaseService {
     _notifyUpdates();
   }
 
+  Future<void> fetchEmployees() async {
+    if (_useFirebase && _dbRef != null) {
+      try {
+        _dbRef!.child('users').onValue.listen((event) {
+          final data = event.snapshot.value;
+          final List<UserModel> fbList = [];
+          if (data is Map) {
+            data.forEach((key, val) {
+              if (val is Map) {
+                try {
+                  fbList.add(UserModel.fromMap(val, key.toString()));
+                } catch (e) {
+                  debugPrint("Error parsing user $key: $e");
+                }
+              }
+            });
+          } else if (data is List) {
+            for (int i = 0; i < data.length; i++) {
+              final val = data[i];
+              if (val is Map) {
+                try {
+                  fbList.add(UserModel.fromMap(val, i.toString()));
+                } catch (e) {
+                  debugPrint("Error parsing user at index $i: $e");
+                }
+              }
+            }
+          }
+          _localUsers.clear();
+          _localUsers.addAll(fbList);
+          _notifyUpdates();
+        });
+      } catch (e) {
+        debugPrint("Error listening to users: $e");
+      }
+    }
+  }
+
+  Future<void> _checkAndSeedDatabase() async {
+    if (!_useFirebase || _dbRef == null) return;
+    try {
+      final snapshot = await _dbRef!.child('users').once().timeout(const Duration(seconds: 3));
+      if (snapshot.snapshot.value == null) {
+        debugPrint("Firebase database is empty. Auto-seeding mock database...");
+        await seedFirebaseDatabase();
+      } else {
+        debugPrint("Firebase database has existing data. Auto-seeding skipped.");
+      }
+    } catch (e) {
+      debugPrint("Error checking/seeding Firebase database: $e");
+    }
+  }
+
   void _setupMockDatabase() {
+    _localUsers.clear();
+    _localAnnouncements.clear();
+    _localAgreements.clear();
+    _localAppointments.clear();
+    _localNotifications.clear();
+    _localListings.clear();
+    _localPayrolls.clear();
+    _localLeaveRequests.clear();
+
     // 1. Populate Users
     _localUsers.addAll([
       UserModel(
@@ -298,6 +370,83 @@ class FirebaseService {
         status: "active",
       ),
     ]);
+
+    // 7. Populate Payrolls
+    _localPayrolls.addAll([
+      PayrollModel(
+        id: "pay_1",
+        userId: "uid_employee",
+        userName: "Ahmet Yılmaz",
+        month: "Temmuz",
+        year: 2026,
+        netSalary: 42500.0,
+        allowances: 4500.0,
+        deductions: 1800.0,
+        status: "Paid",
+      ),
+      PayrollModel(
+        id: "pay_2",
+        userId: "uid_employee",
+        userName: "Ahmet Yılmaz",
+        month: "Haziran",
+        year: 2026,
+        netSalary: 42500.0,
+        allowances: 3000.0,
+        deductions: 1800.0,
+        status: "Paid",
+      ),
+      PayrollModel(
+        id: "pay_3",
+        userId: "uid_employee2",
+        userName: "Merve Demir",
+        month: "Temmuz",
+        year: 2026,
+        netSalary: 38000.0,
+        allowances: 5000.0,
+        deductions: 1500.0,
+        status: "Paid",
+      ),
+    ]);
+
+    // 8. Populate Leave Requests
+    _localLeaveRequests.addAll([
+      LeaveRequestModel(
+        id: "leave_1",
+        userId: "uid_employee",
+        userName: "Ahmet Yılmaz",
+        leaveType: "Yıllık İzin",
+        startDate: "2026-06-10",
+        endDate: "2026-06-15",
+        durationDays: 5,
+        reason: "Yaz tatili planı",
+        status: "approved",
+        timestamp: DateTime.now().subtract(const Duration(days: 40)).millisecondsSinceEpoch,
+      ),
+      LeaveRequestModel(
+        id: "leave_2",
+        userId: "uid_employee2",
+        userName: "Merve Demir",
+        leaveType: "Sağlık İzni",
+        startDate: "2026-07-05",
+        endDate: "2026-07-07",
+        durationDays: 2,
+        reason: "Diş tedavi",
+        status: "approved",
+        timestamp: DateTime.now().subtract(const Duration(days: 12)).millisecondsSinceEpoch,
+      ),
+      LeaveRequestModel(
+        id: "leave_3",
+        userId: "uid_employee",
+        userName: "Ahmet Yılmaz",
+        leaveType: "Mazeret İzni",
+        startDate: "2026-08-01",
+        endDate: "2026-08-04",
+        durationDays: 3,
+        reason: "Aile ziyareti",
+        status: "pending",
+        timestamp: DateTime.now().subtract(const Duration(days: 1)).millisecondsSinceEpoch,
+      ),
+    ]);
   }
 
   void _notifyUpdates() {
@@ -317,6 +466,28 @@ class FirebaseService {
       _localListings.toList()..sort((a, b) => b.timestamp.compareTo(a.timestamp))
     );
     
+    // Payroll stream updates
+    if (_currentUser != null) {
+      if (_currentUser!.isAdmin) {
+        _payrollsStreamController.add(_localPayrolls.toList()..sort((a, b) => b.year == a.year ? b.month.compareTo(a.month) : b.year.compareTo(a.year)));
+      } else {
+        _payrollsStreamController.add(_localPayrolls.where((p) => p.userId == _currentUser!.uid).toList()..sort((a, b) => b.year == a.year ? b.month.compareTo(a.month) : b.year.compareTo(a.year)));
+      }
+    } else {
+      _payrollsStreamController.add([]);
+    }
+
+    // Leave request stream updates
+    if (_currentUser != null) {
+      if (_currentUser!.isAdmin) {
+        _leaveRequestsStreamController.add(_localLeaveRequests.toList()..sort((a, b) => b.timestamp.compareTo(a.timestamp)));
+      } else {
+        _leaveRequestsStreamController.add(_localLeaveRequests.where((l) => l.userId == _currentUser!.uid).toList()..sort((a, b) => b.timestamp.compareTo(a.timestamp)));
+      }
+    } else {
+      _leaveRequestsStreamController.add([]);
+    }
+    
     _notificationsStreamController.add(_localNotifications);
     _authStreamController.add(_currentUser);
   }
@@ -330,22 +501,32 @@ class FirebaseService {
       // Real firebase auth can be simulated here
       // Standard Firebase DB query to fetch matching user email
       try {
-        final event = await _dbRef!.child('users').once();
-        if (event.snapshot.value is Map) {
-          final usersMap = event.snapshot.value as Map;
-          String? foundId;
-          Map? foundData;
-          usersMap.forEach((key, val) {
+        final event = await _dbRef!.child('users').once().timeout(const Duration(seconds: 3));
+        final data = event.snapshot.value;
+        String? foundId;
+        Map? foundData;
+        
+        if (data is Map) {
+          data.forEach((key, val) {
             if (val is Map && val['email'] == email) {
-              foundId = key;
+              foundId = key.toString();
               foundData = val;
             }
           });
-          if (foundId != null && foundData != null) {
-            _currentUser = UserModel.fromMap(foundData!, foundId!);
-            _notifyUpdates();
-            return _currentUser;
+        } else if (data is List) {
+          for (int i = 0; i < data.length; i++) {
+            final val = data[i];
+            if (val is Map && val['email'] == email) {
+              foundId = i.toString();
+              foundData = val;
+            }
           }
+        }
+
+        if (foundId != null && foundData != null) {
+          _currentUser = UserModel.fromMap(foundData!, foundId!);
+          _notifyUpdates();
+          return _currentUser;
         }
       } catch (e) {
         debugPrint("Firebase Login Error: $e. Falling back to local search.");
@@ -824,6 +1005,8 @@ class FirebaseService {
       _localAppointments.clear();
       _localNotifications.clear();
       _localListings.clear();
+      _localPayrolls.clear();
+      _localLeaveRequests.clear();
       _setupMockDatabase();
 
       // 1. Kullanıcıları Yükle (users)
@@ -863,9 +1046,241 @@ class FirebaseService {
       }
       debugPrint("✓ İkinci el ilanlar yüklendi.");
 
+      // 7. Bordroları Yükle (payrolls)
+      for (var payroll in _localPayrolls) {
+        await _dbRef!.child('payrolls').child(payroll.id).set(payroll.toMap());
+      }
+      debugPrint("✓ Bordrolar yüklendi.");
+
+      // 8. İzin Taleplerini Yükle (leave_requests)
+      for (var request in _localLeaveRequests) {
+        await _dbRef!.child('leave_requests').child(request.id).set(request.toMap());
+      }
+      debugPrint("✓ İzin talepleri yüklendi.");
+
       debugPrint("🎉 Tüm mock veriler başarıyla Firebase Realtime Database'e aktarıldı!");
     } catch (e) {
       debugPrint("Veri aktarımı sırasında hata oluştu: $e");
     }
+  }
+
+  // --- CRM / EMPLOYEE MANAGEMENT ---
+
+  List<UserModel> getAllEmployees() {
+    return _localUsers.where((u) => u.uid != 'uid_admin').toList();
+  }
+
+  Future<void> addEmployee(UserModel user) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    _localUsers.add(user);
+    if (_useFirebase) {
+      try {
+        await _dbRef!.child('users').child(user.uid).set(user.toMap());
+      } catch (e) {
+        debugPrint("Error writing new user to Firebase: $e");
+      }
+    }
+    _notifyUpdates();
+  }
+
+  Future<void> updateEmployee(UserModel user) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    final idx = _localUsers.indexWhere((u) => u.uid == user.uid);
+    if (idx != -1) {
+      _localUsers[idx] = user;
+    }
+    if (_useFirebase) {
+      try {
+        await _dbRef!.child('users').child(user.uid).set(user.toMap());
+      } catch (e) {
+        debugPrint("Error updating user on Firebase: $e");
+      }
+    }
+    _notifyUpdates();
+  }
+
+  // --- PAYROLL METHODS ---
+
+  Future<void> getPayrolls() async {
+    _notifyUpdates();
+    if (_useFirebase) {
+      try {
+        _dbRef!.child('payrolls').onValue.listen((event) {
+          final data = event.snapshot.value;
+          final List<PayrollModel> fbList = [];
+          if (data is Map) {
+            data.forEach((key, val) {
+              if (val is Map) {
+                try {
+                  fbList.add(PayrollModel.fromMap(val, key.toString()));
+                } catch (e) {
+                  debugPrint("Error parsing payroll $key: $e");
+                }
+              }
+            });
+          } else if (data is List) {
+            for (int i = 0; i < data.length; i++) {
+              final val = data[i];
+              if (val is Map) {
+                try {
+                  fbList.add(PayrollModel.fromMap(val, i.toString()));
+                } catch (e) {
+                  debugPrint("Error parsing payroll at index $i: $e");
+                }
+              }
+            }
+          }
+          _localPayrolls.clear();
+          _localPayrolls.addAll(fbList);
+          _notifyUpdates();
+        }, onError: (err) {
+          debugPrint("Firebase payrolls listener error: $err");
+          _notifyUpdates();
+        });
+      } catch (e) {
+        debugPrint("Error reading payrolls from Firebase: $e");
+      }
+    }
+  }
+
+  Future<void> addPayroll(PayrollModel payroll) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    _localPayrolls.add(payroll);
+    if (_useFirebase) {
+      try {
+        await _dbRef!.child('payrolls').child(payroll.id).set(payroll.toMap());
+      } catch (e) {
+        debugPrint("Error writing payroll to Firebase: $e");
+      }
+    }
+    _notifyUpdates();
+  }
+
+  // --- LEAVE REQUEST METHODS ---
+
+  Future<void> getLeaveRequests() async {
+    _notifyUpdates();
+    if (_useFirebase) {
+      try {
+        _dbRef!.child('leave_requests').onValue.listen((event) {
+          final data = event.snapshot.value;
+          final List<LeaveRequestModel> fbList = [];
+          if (data is Map) {
+            data.forEach((key, val) {
+              if (val is Map) {
+                try {
+                  fbList.add(LeaveRequestModel.fromMap(val, key.toString()));
+                } catch (e) {
+                  debugPrint("Error parsing leave request $key: $e");
+                }
+              }
+            });
+          } else if (data is List) {
+            for (int i = 0; i < data.length; i++) {
+              final val = data[i];
+              if (val is Map) {
+                try {
+                  fbList.add(LeaveRequestModel.fromMap(val, i.toString()));
+                } catch (e) {
+                  debugPrint("Error parsing leave request at index $i: $e");
+                }
+              }
+            }
+          }
+          _localLeaveRequests.clear();
+          _localLeaveRequests.addAll(fbList);
+          _notifyUpdates();
+        }, onError: (err) {
+          debugPrint("Firebase leave_requests listener error: $err");
+          _notifyUpdates();
+        });
+      } catch (e) {
+        debugPrint("Error reading leave_requests from Firebase: $e");
+      }
+    }
+  }
+
+  Future<void> submitLeaveRequest({
+    required String leaveType,
+    required String startDate,
+    required String endDate,
+    required int durationDays,
+    required String reason,
+  }) async {
+    if (_currentUser == null) return;
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    final id = "leave_" + const Uuid().v4();
+    final newRequest = LeaveRequestModel(
+      id: id,
+      userId: _currentUser!.uid,
+      userName: _currentUser!.fullName,
+      leaveType: leaveType,
+      startDate: startDate,
+      endDate: endDate,
+      durationDays: durationDays,
+      reason: reason,
+      status: "pending",
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+    );
+
+    _localLeaveRequests.add(newRequest);
+
+    // Add notification to admin logs
+    final notifId = "notif_" + const Uuid().v4();
+    final notif = {
+      'id': notifId,
+      'title': 'İzin Talebi',
+      'message': '${_currentUser!.fullName} ($leaveType) için $durationDays gün izin talebinde bulundu. Gerekçe: $reason',
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+      'type': 'leave_request',
+    };
+    _localNotifications.insert(0, notif);
+
+    if (_useFirebase) {
+      try {
+        await _dbRef!.child('leave_requests').child(id).set(newRequest.toMap());
+        await _dbRef!.child('admin_notifications').child(notifId).set(notif);
+      } catch (e) {
+        debugPrint("Error submitting leave request to Firebase: $e");
+      }
+    }
+    _notifyUpdates();
+  }
+
+  Future<void> approveLeaveRequest(String id) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    final idx = _localLeaveRequests.indexWhere((l) => l.id == id);
+    if (idx != -1) {
+      final updated = _localLeaveRequests[idx].copyWith(status: "approved");
+      _localLeaveRequests[idx] = updated;
+
+      if (_useFirebase) {
+        try {
+          await _dbRef!.child('leave_requests').child(id).child('status').set('approved');
+        } catch (e) {
+          debugPrint("Error approving leave request on Firebase: $e");
+        }
+      }
+    }
+    _notifyUpdates();
+  }
+
+  Future<void> rejectLeaveRequest(String id) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    final idx = _localLeaveRequests.indexWhere((l) => l.id == id);
+    if (idx != -1) {
+      final updated = _localLeaveRequests[idx].copyWith(status: "rejected");
+      _localLeaveRequests[idx] = updated;
+
+      if (_useFirebase) {
+        try {
+          await _dbRef!.child('leave_requests').child(id).child('status').set('rejected');
+        } catch (e) {
+          debugPrint("Error rejecting leave request on Firebase: $e");
+        }
+      }
+    }
+    _notifyUpdates();
   }
 }
