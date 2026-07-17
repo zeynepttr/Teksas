@@ -18,9 +18,10 @@ void main() async {
   // Initialize Hane database services (falls back to local database if Firebase is uninitialized)
   final firebaseService = FirebaseService();
   await firebaseService.initialize();
-
+  
   // Try auto login
   final currentUser = await firebaseService.tryAutoLogin();
+
 
   runApp(MyApp(isLoggedIn: currentUser != null));
 }
@@ -38,7 +39,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Hane',
       debugShowCheckedModeBanner: false,
-      theme: AppThemes.darkTheme,
+      theme: AppThemes.lightTheme,
       home: isLoggedIn ? const MainScreen() : const LoginScreen(),
     );
   }

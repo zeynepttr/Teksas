@@ -8,6 +8,7 @@ import '../models/user_model.dart';
 import '../models/announcement_model.dart';
 import '../models/agreement_model.dart';
 import '../models/appointment_model.dart';
+import '../models/listing_model.dart';
 
 class FirebaseService {
   static final FirebaseService _instance = FirebaseService._internal();
@@ -23,16 +24,19 @@ class FirebaseService {
   final List<AnnouncementModel> _localAnnouncements = [];
   final List<AgreementModel> _localAgreements = [];
   final List<AppointmentModel> _localAppointments = [];
+  final List<ListingModel> _localListings = [];
   final List<Map<String, dynamic>> _localNotifications = [];
 
   // Stream controllers to push real-time updates to UI
   final _announcementsStreamController = StreamController<List<AnnouncementModel>>.broadcast();
   final _appointmentsStreamController = StreamController<List<AppointmentModel>>.broadcast();
+  final _listingsStreamController = StreamController<List<ListingModel>>.broadcast();
   final _notificationsStreamController = StreamController<List<Map<String, dynamic>>>.broadcast();
   final _authStreamController = StreamController<UserModel?>.broadcast();
 
   Stream<List<AnnouncementModel>> get announcementsStream => _announcementsStreamController.stream;
   Stream<List<AppointmentModel>> get appointmentsStream => _appointmentsStreamController.stream;
+  Stream<List<ListingModel>> get listingsStream => _listingsStreamController.stream;
   Stream<List<Map<String, dynamic>>> get notificationsStream => _notificationsStreamController.stream;
   Stream<UserModel?> get authStateChanges => _authStreamController.stream;
 
@@ -42,9 +46,16 @@ class FirebaseService {
     try {
       // Check if Firebase is configured in the project
       if (Firebase.apps.isNotEmpty) {
-        _dbRef = FirebaseDatabase.instance.ref();
+        // Logda görünen kendi veritabanı URL'nizi buraya doğrudan tanımlayarak eşleştiriyoruz:
+        const String dbUrl = "https://hane-hackathon-default-rtdb.firebaseio.com/";
+        
+        _dbRef = FirebaseDatabase.instanceFor(
+          app: Firebase.app(),
+          databaseURL: dbUrl,
+        ).ref();
+        
         _useFirebase = true;
-        debugPrint("Firebase Realtime Database initialized successfully.");
+        debugPrint("Firebase Realtime Database initialized successfully. URL: $dbUrl");
       } else {
         debugPrint("Firebase not initialized. Falling back to Simulated Realtime Database.");
         _useFirebase = false;
@@ -228,6 +239,62 @@ class FirebaseService {
         status: "pending",
       )
     );
+
+    // 6. Populate Marketplace Listings (Aramızda)
+    _localListings.addAll([
+      ListingModel(
+        id: "list_1",
+        title: "Donanımlı, Bakımlı Egea Cross 🚗",
+        description: "2022 model, 24.500 km'de. Boyasız, hatasız, tüm bakımları yetkili serviste yapılmıştır. Şerit takip, geri görüş kamerası, carplay mevcuttur. Pazarlık payı vardır.",
+        price: 820000.0,
+        category: "Araç",
+        imageUrl: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?q=80&w=600&auto=format&fit=crop",
+        sellerId: "uid_employee",
+        sellerName: "Ahmet Yılmaz",
+        sellerPhone: "+90 532 987 6543",
+        timestamp: DateTime.now().subtract(const Duration(days: 2)).millisecondsSinceEpoch,
+        status: "active",
+      ),
+      ListingModel(
+        id: "list_2",
+        title: "Bilecik Bahçelievler Daire 3+1 Daire 🏢",
+        description: "Bilecik Bahçelievler Mahallesinde sıfır binada, lüks yapılı, ebeveyn banyolu, asansörlü, kapalı otoparklı, ferah güney cephe 3+1 daire satılıktır. İHH çalışanlarına özel fiyattır.",
+        price: 2100000.0,
+        category: "Emlak",
+        imageUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=600&auto=format&fit=crop",
+        sellerId: "uid_employee2",
+        sellerName: "Merve Demir",
+        sellerPhone: "+90 541 333 4455",
+        timestamp: DateTime.now().subtract(const Duration(days: 5)).millisecondsSinceEpoch,
+        status: "active",
+      ),
+      ListingModel(
+        id: "list_3",
+        title: "iPhone 14 Pro Max 128 GB 📱",
+        description: "Kozmetik olarak 10/10 durumdadır. Pil sağlığı %88, garantisi 3 ay önce bitti. Kutu, fatura ve orijinal şarj kablosu ile birlikte teslim edilecektir. Takas düşünmüyorum.",
+        price: 42500.0,
+        category: "iPhone",
+        imageUrl: "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?q=80&w=600&auto=format&fit=crop",
+        sellerId: "uid_admin",
+        sellerName: "Zeynep Turan",
+        sellerPhone: "+90 555 123 4567",
+        timestamp: DateTime.now().subtract(const Duration(hours: 12)).millisecondsSinceEpoch,
+        status: "active",
+      ),
+      ListingModel(
+        id: "list_4",
+        title: "Nespresso Essenza Mini C30 Kahve Makinesi ☕",
+        description: "Çok az kullanıldı, sıfırdan farksızdır. Kutusu ve kitapçıkları duruyor. Yanında 2 kutu orijinal kapsül hediye olarak verilecektir.",
+        price: 4500.0,
+        category: "Elektronik",
+        imageUrl: "https://images.unsplash.com/photo-1517256064527-09c53b2d0bc6?q=80&w=600&auto=format&fit=crop",
+        sellerId: "uid_employee",
+        sellerName: "Ahmet Yılmaz",
+        sellerPhone: "+90 532 987 6543",
+        timestamp: DateTime.now().subtract(const Duration(days: 1)).millisecondsSinceEpoch,
+        status: "active",
+      ),
+    ]);
   }
 
   void _notifyUpdates() {
@@ -242,6 +309,10 @@ class FirebaseService {
         _localAppointments.where((a) => a.userId == _currentUser!.uid).toList()
       );
     }
+
+    _listingsStreamController.add(
+      _localListings.toList()..sort((a, b) => b.timestamp.compareTo(a.timestamp))
+    );
     
     _notificationsStreamController.add(_localNotifications);
     _authStreamController.add(_currentUser);
@@ -620,6 +691,103 @@ class FirebaseService {
     _notifyUpdates();
   }
 
+  // --- MARKETPLACE LISTINGS (ARAMIZDA) ---
+
+  Future<void> getListings() async {
+    if (_useFirebase) {
+      try {
+        _dbRef!.child('marketplace_listings').onValue.listen((event) {
+          final data = event.snapshot.value;
+          if (data is Map) {
+            final List<ListingModel> fbList = [];
+            data.forEach((key, value) {
+              if (value is Map) {
+                fbList.add(ListingModel.fromMap(value, key.toString()));
+              }
+            });
+            _localListings.clear();
+            _localListings.addAll(fbList);
+            _notifyUpdates();
+          }
+        });
+        return;
+      } catch (e) {
+        debugPrint("Error fetching listings from Firebase: $e");
+      }
+    }
+    _notifyUpdates();
+  }
+
+  Future<void> createListing({
+    required String title,
+    required String description,
+    required double price,
+    required String category,
+    String? imageUrl,
+  }) async {
+    if (_currentUser == null) return;
+    
+    await Future.delayed(const Duration(milliseconds: 600));
+    final listingId = const Uuid().v4();
+    
+    final newListing = ListingModel(
+      id: listingId,
+      title: title,
+      description: description,
+      price: price,
+      category: category,
+      imageUrl: imageUrl ?? "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=400&auto=format&fit=crop",
+      sellerId: _currentUser!.uid,
+      sellerName: _currentUser!.fullName,
+      sellerPhone: _currentUser!.phone,
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      status: "active",
+    );
+
+    _localListings.add(newListing);
+    
+    if (_useFirebase) {
+      await _dbRef!.child('marketplace_listings').child(listingId).set(newListing.toMap());
+    }
+    
+    _notifyUpdates();
+  }
+
+  Future<void> markListingAsSold(String id) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    final idx = _localListings.indexWhere((l) => l.id == id);
+    if (idx != -1) {
+      final updated = _localListings[idx].copyWith(status: 'sold');
+      _localListings[idx] = updated;
+
+      if (_useFirebase) {
+        await _dbRef!.child('marketplace_listings').child(id).update({'status': 'sold'});
+      }
+      
+      _notifyUpdates();
+    }
+  }
+
+  Future<void> deleteListing(String id) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    _localListings.removeWhere((l) => l.id == id);
+    
+    if (_useFirebase) {
+      await _dbRef!.child('marketplace_listings').child(id).remove();
+    }
+    
+    _notifyUpdates();
+  }
+
+  Future<void> toggleListingFavorite(String id) async {
+    final idx = _localListings.indexWhere((l) => l.id == id);
+    if (idx != -1) {
+      final updated = _localListings[idx].copyWith(isFavorite: !_localListings[idx].isFavorite);
+      _localListings[idx] = updated;
+      _notifyUpdates();
+    }
+  }
+
   // --- CORPORATE DIRECTORY ---
 
   List<Map<String, String>> getDirectoryContacts() {
@@ -633,5 +801,68 @@ class FirebaseService {
       {"name": "Merve Demir", "title": "Saha Operasyon Sorumlusu", "phone": "+90 541 333 4455", "email": "merve.demir@hane.org.tr"},
       {"name": "Kemal Kaya", "title": "Bilgi Teknolojileri Müdürü", "phone": "+90 505 666 7788", "email": "kemal.kaya@ihh.org.tr"},
     ];
+  }
+
+  /// Bu metot, mock veritabanındaki tüm verileri Firebase Realtime Database'e yükler.
+  /// Sadece bir kez (uygulama kurulumunda veya test aşamasında) çalıştırılmalıdır.
+  Future<void> seedFirebaseDatabase() async {
+    if (!_useFirebase || _dbRef == null) {
+      debugPrint("Hata: Firebase bağlı değil veya başlatılamadı. Veri yükleme iptal edildi.");
+      return;
+    }
+
+    try {
+      debugPrint("Firebase'e veri yükleme işlemi başlatılıyor...");
+
+      // Önce mock verilerin bellekte hazır olduğundan emin olmak için kuruyoruz
+      _localUsers.clear();
+      _localAnnouncements.clear();
+      _localAgreements.clear();
+      _localAppointments.clear();
+      _localNotifications.clear();
+      _localListings.clear();
+      _setupMockDatabase();
+
+      // 1. Kullanıcıları Yükle (users)
+      for (var user in _localUsers) {
+        await _dbRef!.child('users').child(user.uid).set(user.toMap());
+      }
+      debugPrint("✓ Kullanıcılar yüklendi.");
+
+      // 2. Duyuruları Yükle (announcements)
+      for (var announcement in _localAnnouncements) {
+        await _dbRef!.child('announcements').child(announcement.id).set(announcement.toMap());
+      }
+      debugPrint("✓ Duyurular yüklendi.");
+
+      // 3. Anlaşmaları Yükle (partner_agreements)
+      for (var agreement in _localAgreements) {
+        await _dbRef!.child('partner_agreements').child(agreement.id).set(agreement.toMap());
+      }
+      debugPrint("✓ Anlaşmalar yüklendi.");
+
+      // 4. Randevuları Yükle (appointments)
+      for (var appointment in _localAppointments) {
+        await _dbRef!.child('appointments').child(appointment.id).set(appointment.toMap());
+      }
+      debugPrint("✓ Randevular yüklendi.");
+
+      // 5. Bildirimleri Yükle (admin_notifications)
+      for (var notif in _localNotifications) {
+        final id = notif['id'] ?? const Uuid().v4();
+        await _dbRef!.child('admin_notifications').child(id).set(notif);
+      }
+      debugPrint("✓ Bildirimler yüklendi.");
+
+      // 6. İlanları Yükle (marketplace_listings)
+      for (var listing in _localListings) {
+        await _dbRef!.child('marketplace_listings').child(listing.id).set(listing.toMap());
+      }
+      debugPrint("✓ İkinci el ilanlar yüklendi.");
+
+      debugPrint("🎉 Tüm mock veriler başarıyla Firebase Realtime Database'e aktarıldı!");
+    } catch (e) {
+      debugPrint("Veri aktarımı sırasında hata oluştu: $e");
+    }
   }
 }

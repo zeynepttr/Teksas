@@ -156,7 +156,7 @@ class SidebarDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.pop(context);
                     if (onNavigateToTab != null) {
-                      onNavigateToTab!(2); // MainScreen has Profile at index 2
+                      onNavigateToTab!(3); // MainScreen has Profile at index 3
                     }
                   },
                 ),

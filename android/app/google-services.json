@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "242189023598",
+    "firebase_url": "https://hane-hackathon-default-rtdb.firebaseio.com",
+    "project_id": "hane-hackathon",
+    "storage_bucket": "hane-hackathon.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:242189023598:android:940855d8cfebd52715297f",
+        "android_client_info": {
+          "package_name": "com.teksas.hane"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5n7YZOTuYb6j0ngrKvDvRX90QcSVQIR4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

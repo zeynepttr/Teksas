@@ -195,7 +195,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                             children: [
                               Text(
                                 request.author,
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                               ),
                               const Text(
                                 "Paylaşım Talebi",
@@ -235,7 +235,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                           fontFamily: 'DINPro',
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -379,7 +379,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                             const SizedBox(width: 8),
                             Text(
                               log['title'] ?? 'Bildirim',
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 14),
                             ),
                           ],
                         ),

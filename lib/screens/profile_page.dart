@@ -199,7 +199,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         fontFamily: 'DINPro',
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -428,7 +428,7 @@ class _ProfilePageState extends State<ProfilePage> {
         children: [
           const Text(
             "Paylaşım İsteği Oluştur",
-            style: TextStyle(fontFamily: 'DINPro', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(fontFamily: 'DINPro', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
           ),
           const SizedBox(height: 4),
           const Text(
@@ -618,7 +618,7 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             const Text(
               "Aktif Randevularım",
-              style: TextStyle(fontFamily: 'DINPro', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(fontFamily: 'DINPro', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 12),
             ...appointments.map((app) => AppointmentCard(appointment: app)).toList(),

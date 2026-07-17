@@ -97,7 +97,7 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               controller: _searchController,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: AppColors.textPrimary),
               decoration: InputDecoration(
                 hintText: "İsim veya pozisyon arayın...",
                 hintStyle: const TextStyle(color: AppColors.textMuted),
@@ -176,7 +176,7 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
                                         fontFamily: 'DINPro',
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                        color: AppColors.textPrimary,
                                       ),
                                     ),
                                     const SizedBox(height: 4),

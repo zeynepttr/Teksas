@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../widgets/sidebar_drawer.dart';
+import 'dashboard_page.dart';
 import 'timeline_page.dart';
 import 'privileges_page.dart';
 import 'profile_page.dart';
@@ -16,23 +17,24 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   late int _currentIndex;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  late List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialTab;
+    _pages = [
+      DashboardPage(onNavigateToTab: _onTabTapped),
+      const PrivilegesPage(),
+      const TimelinePage(),
+      const ProfilePage(),
+    ];
   }
 
-  // Lists out our three core pages
-  final List<Widget> _pages = [
-    const TimelinePage(),
-    const PrivilegesPage(),
-    const ProfilePage(),
-  ];
-
   final List<String> _titles = [
-    "Hane Timeline",
+    "Hane Ana Sayfa",
     "Ayrıcalıklar",
+    "Hane Akış",
     "Profilim",
   ];
 
@@ -46,32 +48,33 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        title: Text(
-          _titles[_currentIndex],
-          style: const TextStyle(
-            fontFamily: 'DINPro',
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () {
-            _scaffoldKey.currentState?.openDrawer();
-          },
-        ),
-        actions: [
-          // Display a notification icon that points to Profile if they click it, or does nothing for aesthetics
-          IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {
-              setState(() {
-                _currentIndex = 2; // Jump to profile page where admin panel is
-              });
-            },
-          ),
-        ],
-      ),
+      appBar: _currentIndex == 0 
+          ? null // Hide appbar on dashboard as it has its own custom header
+          : AppBar(
+              title: Text(
+                _titles[_currentIndex],
+                style: const TextStyle(
+                  fontFamily: 'DINPro',
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              leading: IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  _scaffoldKey.currentState?.openDrawer();
+                },
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_none),
+                  onPressed: () {
+                    setState(() {
+                      _currentIndex = 3; // Jump to profile page where admin panel is
+                    });
+                  },
+                ),
+              ],
+            ),
       drawer: SidebarDrawer(
         onNavigateToTab: (index) {
           setState(() {
@@ -94,14 +97,19 @@ class _MainScreenState extends State<MainScreen> {
           onTap: _onTabTapped,
           items: const [
             BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard_outlined),
-              activeIcon: Icon(Icons.dashboard, color: AppColors.accent),
-              label: "Akış",
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home, color: AppColors.accent),
+              label: "Ana Sayfa",
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.star_outline),
               activeIcon: Icon(Icons.star, color: AppColors.accent),
               label: "Ayrıcalıklar",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.campaign_outlined),
+              activeIcon: Icon(Icons.campaign, color: AppColors.accent),
+              label: "Akış",
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),

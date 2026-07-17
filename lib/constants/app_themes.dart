@@ -3,9 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppThemes {
-  static ThemeData get darkTheme {
-    // Start with a dark theme base
-    final baseTheme = ThemeData.dark(useMaterial3: true);
+  static ThemeData get lightTheme {
+    // Start with a light theme base
+    final baseTheme = ThemeData.light(useMaterial3: true);
 
     // Apply Google Fonts Outfit which has similar modern, rounded geometric shapes to DINPro
     final textTheme = GoogleFonts.outfitTextTheme(baseTheme.textTheme).copyWith(
@@ -46,8 +46,8 @@ class AppThemes {
     );
 
     return baseTheme.copyWith(
-      colorScheme: const ColorScheme.dark(
-        primary: AppColors.darkGreen,
+      colorScheme: const ColorScheme.light(
+        primary: AppColors.accent,
         secondary: AppColors.oliveGreen,
         background: AppColors.background,
         surface: AppColors.surface,
@@ -56,7 +56,7 @@ class AppThemes {
         onBackground: AppColors.textPrimary,
         onSurface: AppColors.textPrimary,
         error: AppColors.error,
-        onError: Colors.black,
+        onError: Colors.white,
       ),
       scaffoldBackgroundColor: AppColors.background,
       textTheme: textTheme,
@@ -81,12 +81,12 @@ class AppThemes {
       // Input Decoration Theme (Text fields)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surfaceLight,
+        fillColor: AppColors.surface,
         hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderSide: const BorderSide(color: AppColors.surfaceLight, width: 1.5),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -94,7 +94,7 @@ class AppThemes {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.buttonDark, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -109,7 +109,7 @@ class AppThemes {
       // Card Theme
       cardTheme: CardThemeData(
         color: AppColors.surface,
-        elevation: 4,
+        elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: const BorderSide(color: AppColors.surfaceLight, width: 1),

@@ -284,7 +284,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
               children: [
                 Text(
                   "AI Triage & Sağlık Yönlendirmesi",
-                  style: TextStyle(fontFamily: 'DINPro', fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
+                  style: TextStyle(fontFamily: 'DINPro', fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.darkGreen),
                 ),
                 SizedBox(height: 2),
                 Text(
@@ -367,7 +367,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                   child: TextField(
                     controller: _chatController,
                     onSubmitted: (_) => _handleSendMessage(),
-                    style: const TextStyle(fontSize: 14, color: Colors.white),
+                    style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
                     decoration: const InputDecoration(
                       hintText: "Buraya yazın (örn: başım ağrıyor, yorgunum...)",
                       hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 13),
@@ -435,7 +435,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                     fontFamily: 'DINPro',
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ],
@@ -470,7 +470,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
         children: [
           const Text(
             "Randevu Planlama Formu",
-            style: TextStyle(fontFamily: 'DINPro', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(fontFamily: 'DINPro', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
           ),
           const SizedBox(height: 16),
 
@@ -492,7 +492,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                 value: _selectedDoctor,
                 dropdownColor: AppColors.surface,
                 isExpanded: true,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
                 items: const [
                   DropdownMenuItem(
                     value: "Dr. Ayşe Yılmaz",
@@ -534,7 +534,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                 value: _selectedCity,
                 dropdownColor: AppColors.surface,
                 isExpanded: true,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
                 items: const [
                   DropdownMenuItem(value: "İstanbul", child: Text("İstanbul (Genel Merkez)")),
                   DropdownMenuItem(value: "Ankara", child: Text("Ankara (Bölge Temsilciliği)")),
@@ -579,7 +579,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                           children: [
                             Text(
                               "${_selectedDate.day} ${_getMonthName(_selectedDate.month)} ${_selectedDate.year}",
-                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                              style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
                             ),
                             const Icon(Icons.calendar_today, color: AppColors.accent, size: 16),
                           ],
@@ -613,7 +613,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                           children: [
                             Text(
                               "${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}",
-                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                              style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
                             ),
                             const Icon(Icons.access_time, color: AppColors.accent, size: 16),
                           ],

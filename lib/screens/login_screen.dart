@@ -109,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       fontFamily: 'DINPro',
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.darkGreen,
                       letterSpacing: 1.5,
                     ),
                   ),
