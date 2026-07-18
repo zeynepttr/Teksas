@@ -4,6 +4,7 @@ import '../services/firebase_service.dart';
 import 'marketplace_screen.dart';
 import 'doctor_booking_screen.dart';
 import 'directory_screen.dart';
+import 'kanka_screen.dart';
 
 class DashboardPage extends StatefulWidget {
   final Function(int) onNavigateToTab;
@@ -285,7 +286,10 @@ class _DashboardPageState extends State<DashboardPage> {
                       icon: Icons.favorite_border,
                       imageUrl: "https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=800&auto=format&fit=crop",
                       onTap: () {
-                        _showKankaDialog(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const KankaScreen()),
+                        );
                       },
                     ),
                   ],

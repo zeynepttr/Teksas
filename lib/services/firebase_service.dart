@@ -12,6 +12,7 @@ import '../models/listing_model.dart';
 import '../models/payroll_model.dart';
 import '../models/leave_request_model.dart';
 import '../models/evaluation_model.dart';
+import '../models/blood_request_model.dart';
 
 class FirebaseService {
   static final FirebaseService _instance = FirebaseService._internal();
@@ -32,6 +33,7 @@ class FirebaseService {
   final List<PayrollModel> _localPayrolls = [];
   final List<LeaveRequestModel> _localLeaveRequests = [];
   final List<EvaluationModel> _localEvaluations = [];
+  final List<BloodRequestModel> _localBloodRequests = [];
 
   // Stream controllers to push real-time updates to UI
   final _announcementsStreamController = StreamController<List<AnnouncementModel>>.broadcast();
@@ -45,6 +47,7 @@ class FirebaseService {
   final _adminPayrollsStreamController = StreamController<List<PayrollModel>>.broadcast();
   final _adminLeaveRequestsStreamController = StreamController<List<LeaveRequestModel>>.broadcast();
   final _evaluationsStreamController = StreamController<List<EvaluationModel>>.broadcast();
+  final _bloodRequestsStreamController = StreamController<List<BloodRequestModel>>.broadcast();
 
   Stream<List<AnnouncementModel>> get announcementsStream => _announcementsStreamController.stream;
   Stream<List<AppointmentModel>> get appointmentsStream => _appointmentsStreamController.stream;
@@ -57,6 +60,7 @@ class FirebaseService {
   Stream<List<PayrollModel>> get adminPayrollsStream => _adminPayrollsStreamController.stream;
   Stream<List<LeaveRequestModel>> get adminLeaveRequestsStream => _adminLeaveRequestsStreamController.stream;
   Stream<List<EvaluationModel>> get evaluationsStream => _evaluationsStreamController.stream;
+  Stream<List<BloodRequestModel>> get bloodRequestsStream => _bloodRequestsStreamController.stream;
 
   UserModel? get currentUser => _currentUser;
 
@@ -605,6 +609,24 @@ class FirebaseService {
         timestamp: DateTime.now().subtract(const Duration(days: 3)).millisecondsSinceEpoch,
       ),
     ]);
+
+    // Populate Blood Requests
+    _localBloodRequests.add(
+      BloodRequestModel(
+        id: "req_blood_1",
+        userId: "uid_employee",
+        userName: "Ahmet Yılmaz",
+        userPhone: "+90 532 987 6543",
+        userRole: "İHH Çalışanı",
+        bloodGroup: "A Rh+",
+        hospital: "Kocaeli Şehir Hastanesi",
+        units: 1,
+        notes: "Taze Kan",
+        isUrgent: true,
+        status: "active",
+        timestamp: DateTime.now().subtract(const Duration(hours: 1)).millisecondsSinceEpoch,
+      ),
+    );
   }
 
   void _notifyUpdates() {
@@ -659,6 +681,9 @@ class FirebaseService {
     _usersStreamController.add(_localUsers.toList()..sort((a, b) => a.name.compareTo(b.name)));
     _evaluationsStreamController.add(
       _localEvaluations.toList()..sort((a, b) => b.timestamp.compareTo(a.timestamp))
+    );
+    _bloodRequestsStreamController.add(
+      _localBloodRequests.toList()..sort((a, b) => b.timestamp.compareTo(a.timestamp))
     );
   }
 
@@ -1582,5 +1607,120 @@ class FirebaseService {
       }
     }
     _notifyUpdates();
+  }
+
+  // --- BLOOD REQUESTS METHODS ---
+
+  Future<void> getBloodRequests() async {
+    _notifyUpdates();
+    if (_useFirebase && _dbRef != null) {
+      try {
+        _dbRef!.child('blood_requests').onValue.listen((event) {
+          final data = event.snapshot.value;
+          final List<BloodRequestModel> fbList = [];
+          if (data is Map) {
+            data.forEach((key, val) {
+              if (val is Map) {
+                try {
+                  fbList.add(BloodRequestModel.fromMap(val, key.toString()));
+                } catch (e) {
+                  debugPrint("Error parsing blood request $key: $e");
+                }
+              }
+            });
+          } else if (data is List) {
+            for (int i = 0; i < data.length; i++) {
+              final val = data[i];
+              if (val is Map) {
+                try {
+                  fbList.add(BloodRequestModel.fromMap(val, i.toString()));
+                } catch (e) {
+                  debugPrint("Error parsing blood request at index $i: $e");
+                }
+              }
+            }
+          }
+          _localBloodRequests.clear();
+          _localBloodRequests.addAll(fbList);
+          _notifyUpdates();
+        }, onError: (err) {
+          debugPrint("Firebase blood requests listener error: $err");
+          _notifyUpdates();
+        });
+      } catch (e) {
+        debugPrint("Error reading blood requests from Firebase: $e");
+      }
+    }
+  }
+
+  Future<void> createBloodRequest({
+    required String bloodGroup,
+    required String hospital,
+    required int units,
+    required String notes,
+    required bool isUrgent,
+  }) async {
+    if (_currentUser == null) return;
+    
+    await Future.delayed(const Duration(milliseconds: 500));
+    final requestId = const Uuid().v4();
+    
+    final newRequest = BloodRequestModel(
+      id: requestId,
+      userId: _currentUser!.uid,
+      userName: _currentUser!.fullName,
+      userPhone: _currentUser!.phone,
+      userRole: _currentUser!.role,
+      bloodGroup: bloodGroup,
+      hospital: hospital,
+      units: units,
+      notes: notes,
+      isUrgent: isUrgent,
+      status: "active",
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+    );
+
+    _localBloodRequests.add(newRequest);
+    
+    // Add to admin notifications so İK knows
+    final notifId = "notif_" + const Uuid().v4();
+    final notif = {
+      'id': notifId,
+      'title': 'Yeni Kan Talebi',
+      'message': '${_currentUser!.fullName} (${bloodGroup}) için $units ünite kan talebinde bulundu. Hastane: $hospital',
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+      'type': 'blood_request',
+    };
+    _localNotifications.insert(0, notif);
+
+    if (_useFirebase && _dbRef != null) {
+      try {
+        await _dbRef!.child('blood_requests').child(requestId).set(newRequest.toMap());
+        await _dbRef!.child('admin_notifications').child(notifId).set(notif);
+      } catch (e) {
+        debugPrint("Error writing blood request to Firebase: $e");
+      }
+    }
+    
+    _notifyUpdates();
+  }
+
+  Future<void> resolveBloodRequest(String id, String status) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    final idx = _localBloodRequests.indexWhere((r) => r.id == id);
+    if (idx != -1) {
+      final updated = _localBloodRequests[idx].copyWith(status: status);
+      _localBloodRequests[idx] = updated;
+
+      if (_useFirebase && _dbRef != null) {
+        try {
+          await _dbRef!.child('blood_requests').child(id).child('status').set(status);
+        } catch (e) {
+          debugPrint("Error updating blood request status on Firebase: $e");
+        }
+      }
+      
+      _notifyUpdates();
+    }
   }
 }
