@@ -3,7 +3,10 @@ import '../constants/app_colors.dart';
 import '../models/appointment_model.dart';
 import '../models/payroll_model.dart';
 import '../models/leave_request_model.dart';
+import '../models/evaluation_model.dart';
+import '../models/user_model.dart';
 import '../services/firebase_service.dart';
+import 'package:uuid/uuid.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/appointment_card.dart';
@@ -38,6 +41,14 @@ class _ProfilePageState extends State<ProfilePage> {
   String _selectedType = 'wedding';
   String _selectedPresetImage = 'wedding'; // wedding, celebration, general
   bool _isSubmittingRequest = false;
+
+  // Subordinate Evaluation Fields
+  String? _selectedSubordinateId;
+  double _performanceScore = 5;
+  double _leadershipScore = 5;
+  double _cooperationScore = 5;
+  final _evaluationFeedbackController = TextEditingController();
+  bool _isSubmittingEvaluation = false;
 
   // Visual tab state (Info/Edit, New Request, Appointments)
   int _activeSubSection = 0; // 0 = Info/Edit, 1 = New Request, 2 = Appointments
@@ -75,6 +86,7 @@ class _ProfilePageState extends State<ProfilePage> {
     _descController.dispose();
     _dateController.dispose();
     _locController.dispose();
+    _evaluationFeedbackController.dispose();
     super.dispose();
   }
 
@@ -291,27 +303,41 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
 
           // 3. Sub-navigation tabs
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                _buildSubTab(0, "Bilgilerim", Icons.edit_note),
-                _buildSubTab(1, "Paylaşım İsteği", Icons.add_photo_alternate_outlined),
-                _buildSubTab(2, "Randevularım", Icons.calendar_today_outlined),
-                _buildSubTab(3, "Bordrolarım", Icons.receipt_long_outlined),
-                _buildSubTab(4, "İzin Taleplerim", Icons.time_to_leave_outlined),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
+          Builder(
+            builder: (context) {
+              final subordinates = _firebaseService.getAllEmployees().where((u) => u.managerId == user.uid).toList();
+              final bool hasSubordinates = subordinates.isNotEmpty;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        _buildSubTab(0, "Bilgilerim", Icons.edit_note),
+                        _buildSubTab(1, "Paylaşım İsteği", Icons.add_photo_alternate_outlined),
+                        _buildSubTab(2, "Randevularım", Icons.calendar_today_outlined),
+                        _buildSubTab(3, "Bordrolarım", Icons.receipt_long_outlined),
+                        _buildSubTab(4, "İzin Taleplerim", Icons.time_to_leave_outlined),
+                        if (hasSubordinates)
+                          _buildSubTab(5, "Değerlendirme", Icons.rate_review_outlined),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
 
-          // 4. Content Area
-          if (_activeSubSection == 0) _buildProfileEditForm(),
-          if (_activeSubSection == 1) _buildAnnouncementRequestForm(),
-          if (_activeSubSection == 2) _buildAppointmentsList(),
-          if (_activeSubSection == 3) _buildProfilePayrolls(),
-          if (_activeSubSection == 4) _buildProfileLeaveRequests(),
+                  // 4. Content Area
+                  if (_activeSubSection == 0) _buildProfileEditForm(),
+                  if (_activeSubSection == 1) _buildAnnouncementRequestForm(),
+                  if (_activeSubSection == 2) _buildAppointmentsList(),
+                  if (_activeSubSection == 3) _buildProfilePayrolls(),
+                  if (_activeSubSection == 4) _buildProfileLeaveRequests(),
+                  if (_activeSubSection == 5 && hasSubordinates) _buildEvaluationForm(subordinates),
+                ],
+              );
+            }
+          ),
         ],
       ),
     );
@@ -924,6 +950,248 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
               },
             );
+          },
+        ),
+      ],
+    );
+  }
+
+  // SUB-SECTION 5: Subordinate Year-End Evaluation Form
+  Widget _buildEvaluationForm(List<UserModel> subordinates) {
+    if (_selectedSubordinateId == null && subordinates.isNotEmpty) {
+      _selectedSubordinateId = subordinates.first.uid;
+    }
+    
+    final selectedSub = subordinates.firstWhere(
+      (s) => s.uid == _selectedSubordinateId,
+      orElse: () => subordinates.first,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Yıl Sonu Değerlendirmesi",
+          style: TextStyle(fontFamily: 'DINPro', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          "Yönetiminiz altındaki personellerin yıl sonu performans ve yetkinlik değerlendirmelerini yaparak İK departmanına raporlayın.",
+          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 16),
+        
+        const Text(
+          "Değerlendirilecek Personel",
+          style: TextStyle(fontFamily: 'DINPro', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: _selectedSubordinateId,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+          items: subordinates.map((sub) {
+            return DropdownMenuItem<String>(
+              value: sub.uid,
+              child: Text("${sub.fullName} (${sub.role})"),
+            );
+          }).toList(),
+          onChanged: (val) {
+            setState(() {
+              _selectedSubordinateId = val;
+            });
+          },
+        ),
+        const SizedBox(height: 20),
+
+        // Score 1: Performance
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Performans Skoru",
+                  style: TextStyle(fontFamily: 'DINPro', fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+                ),
+                Text(
+                  "İş hedeflerini gerçekleştirme düzeyi",
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+            Text(
+              "${_performanceScore.toInt()} / 5",
+              style: const TextStyle(fontFamily: 'DINPro', fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.accent),
+            ),
+          ],
+        ),
+        Slider(
+          value: _performanceScore,
+          min: 1,
+          max: 5,
+          divisions: 4,
+          activeColor: AppColors.accent,
+          inactiveColor: AppColors.surfaceLight,
+          onChanged: (val) {
+            setState(() {
+              _performanceScore = val;
+            });
+          },
+        ),
+        const SizedBox(height: 12),
+
+        // Score 2: Leadership
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Liderlik & İnisiyatif",
+                  style: TextStyle(fontFamily: 'DINPro', fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+                ),
+                Text(
+                  "Sorumluluk alma ve yönlendirme yetisi",
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+            Text(
+              "${_leadershipScore.toInt()} / 5",
+              style: const TextStyle(fontFamily: 'DINPro', fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.accent),
+            ),
+          ],
+        ),
+        Slider(
+          value: _leadershipScore,
+          min: 1,
+          max: 5,
+          divisions: 4,
+          activeColor: AppColors.accent,
+          inactiveColor: AppColors.surfaceLight,
+          onChanged: (val) {
+            setState(() {
+              _leadershipScore = val;
+            });
+          },
+        ),
+        const SizedBox(height: 12),
+
+        // Score 3: Cooperation
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Ekip Çalışması & Uyum",
+                  style: TextStyle(fontFamily: 'DINPro', fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+                ),
+                Text(
+                  "Diğer ekip üyeleriyle işbirliği ve iletişim",
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+            Text(
+              "${_cooperationScore.toInt()} / 5",
+              style: const TextStyle(fontFamily: 'DINPro', fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.accent),
+            ),
+          ],
+        ),
+        Slider(
+          value: _cooperationScore,
+          min: 1,
+          max: 5,
+          divisions: 4,
+          activeColor: AppColors.accent,
+          inactiveColor: AppColors.surfaceLight,
+          onChanged: (val) {
+            setState(() {
+              _cooperationScore = val;
+            });
+          },
+        ),
+        const SizedBox(height: 20),
+
+        CustomTextField(
+          controller: _evaluationFeedbackController,
+          hintText: "Personel hakkında genel görüşleriniz, güçlü ve geliştirilmesi gereken yönler...",
+          labelText: "Detaylı Geri Bildirim & Değerlendirme Notu",
+          maxLines: 4,
+        ),
+        const SizedBox(height: 24),
+
+        CustomButton(
+          text: "İK'ya Değerlendirme Raporu Gönder",
+          width: double.infinity,
+          isLoading: _isSubmittingEvaluation,
+          onPressed: () async {
+            if (_evaluationFeedbackController.text.trim().isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Lütfen değerlendirme notunu doldurun.", style: TextStyle(fontFamily: 'DINPro')),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+              return;
+            }
+
+            setState(() {
+              _isSubmittingEvaluation = true;
+            });
+
+            try {
+              final eval = EvaluationModel(
+                id: "eval_" + const Uuid().v4(),
+                managerId: _firebaseService.currentUser!.uid,
+                managerName: _firebaseService.currentUser!.fullName,
+                subordinateId: selectedSub.uid,
+                subordinateName: selectedSub.fullName,
+                performanceScore: _performanceScore.toInt(),
+                leadershipScore: _leadershipScore.toInt(),
+                cooperationScore: _cooperationScore.toInt(),
+                feedback: _evaluationFeedbackController.text.trim(),
+                year: DateTime.now().year,
+                timestamp: DateTime.now().millisecondsSinceEpoch,
+              );
+
+              await _firebaseService.submitEvaluation(eval);
+
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("${selectedSub.fullName} için değerlendirme raporu İK'ya gönderildi.", style: const TextStyle(fontFamily: 'DINPro')),
+                    backgroundColor: AppColors.buttonDark,
+                  ),
+                );
+                _evaluationFeedbackController.clear();
+                setState(() {
+                  _performanceScore = 5;
+                  _leadershipScore = 5;
+                  _cooperationScore = 5;
+                  _activeSubSection = 0; // Return to details tab
+                });
+              }
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Hata: $e"), backgroundColor: AppColors.error),
+                );
+              }
+            } finally {
+              if (mounted) {
+                setState(() {
+                  _isSubmittingEvaluation = false;
+                });
+              }
+            }
           },
         ),
       ],

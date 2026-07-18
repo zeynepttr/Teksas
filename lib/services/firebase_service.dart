@@ -11,6 +11,7 @@ import '../models/appointment_model.dart';
 import '../models/listing_model.dart';
 import '../models/payroll_model.dart';
 import '../models/leave_request_model.dart';
+import '../models/evaluation_model.dart';
 
 class FirebaseService {
   static final FirebaseService _instance = FirebaseService._internal();
@@ -30,6 +31,7 @@ class FirebaseService {
   final List<Map<String, dynamic>> _localNotifications = [];
   final List<PayrollModel> _localPayrolls = [];
   final List<LeaveRequestModel> _localLeaveRequests = [];
+  final List<EvaluationModel> _localEvaluations = [];
 
   // Stream controllers to push real-time updates to UI
   final _announcementsStreamController = StreamController<List<AnnouncementModel>>.broadcast();
@@ -42,6 +44,7 @@ class FirebaseService {
   final _usersStreamController = StreamController<List<UserModel>>.broadcast();
   final _adminPayrollsStreamController = StreamController<List<PayrollModel>>.broadcast();
   final _adminLeaveRequestsStreamController = StreamController<List<LeaveRequestModel>>.broadcast();
+  final _evaluationsStreamController = StreamController<List<EvaluationModel>>.broadcast();
 
   Stream<List<AnnouncementModel>> get announcementsStream => _announcementsStreamController.stream;
   Stream<List<AppointmentModel>> get appointmentsStream => _appointmentsStreamController.stream;
@@ -53,6 +56,7 @@ class FirebaseService {
   Stream<List<UserModel>> get usersStream => _usersStreamController.stream;
   Stream<List<PayrollModel>> get adminPayrollsStream => _adminPayrollsStreamController.stream;
   Stream<List<LeaveRequestModel>> get adminLeaveRequestsStream => _adminLeaveRequestsStreamController.stream;
+  Stream<List<EvaluationModel>> get evaluationsStream => _evaluationsStreamController.stream;
 
   UserModel? get currentUser => _currentUser;
 
@@ -176,6 +180,7 @@ class FirebaseService {
     _localListings.clear();
     _localPayrolls.clear();
     _localLeaveRequests.clear();
+    _localEvaluations.clear();
 
     // 1. Populate Users
     _localUsers.addAll([
@@ -220,6 +225,7 @@ class FirebaseService {
         extension: "1003",
         employeeCode: "IHH-103",
         department: "Saha Operasyonları",
+        managerId: "uid_employee",
       ),
       UserModel(
         uid: "uid_user_zahit",
@@ -276,6 +282,7 @@ class FirebaseService {
         extension: "5012",
         employeeCode: "IHH-204",
         department: "Psikolojik Destek",
+        managerId: "uid_user_zahit",
       ),
       UserModel(
         uid: "uid_user_kemal",
@@ -290,6 +297,7 @@ class FirebaseService {
         extension: "8021",
         employeeCode: "IHH-205",
         department: "Bilgi Teknolojileri",
+        managerId: "uid_user_zahit",
       ),
     ]);
 
@@ -567,6 +575,36 @@ class FirebaseService {
         timestamp: DateTime.now().subtract(const Duration(days: 1)).millisecondsSinceEpoch,
       ),
     ]);
+
+    // 9. Populate Evaluations (Mock Year-End Evaluations)
+    _localEvaluations.addAll([
+      EvaluationModel(
+        id: "eval_mock_1",
+        managerId: "uid_employee",
+        managerName: "Ahmet Yılmaz",
+        subordinateId: "uid_employee2",
+        subordinateName: "Merve Demir",
+        performanceScore: 4,
+        leadershipScore: 3,
+        cooperationScore: 5,
+        feedback: "Merve Hanım saha operasyonlarında son derece özverili çalıştı. Ekip çalışması harika, ancak kriz anlarında daha fazla inisiyatif alması gerekebilir.",
+        year: 2026,
+        timestamp: DateTime.now().subtract(const Duration(days: 5)).millisecondsSinceEpoch,
+      ),
+      EvaluationModel(
+        id: "eval_mock_2",
+        managerId: "uid_user_zahit",
+        managerName: "Mehmet Zahit Bal",
+        subordinateId: "uid_user_selim",
+        subordinateName: "Selim Can",
+        performanceScore: 5,
+        leadershipScore: 4,
+        cooperationScore: 4,
+        feedback: "Selim Bey kurum psikoloğu olarak çalışanlarımızın tükenmişlik analizlerinde ve danışmanlıklarında mükemmel sonuçlar elde etti.",
+        year: 2026,
+        timestamp: DateTime.now().subtract(const Duration(days: 3)).millisecondsSinceEpoch,
+      ),
+    ]);
   }
 
   void _notifyUpdates() {
@@ -619,6 +657,9 @@ class FirebaseService {
     _notificationsStreamController.add(_localNotifications);
     _authStreamController.add(_currentUser);
     _usersStreamController.add(_localUsers.toList()..sort((a, b) => a.name.compareTo(b.name)));
+    _evaluationsStreamController.add(
+      _localEvaluations.toList()..sort((a, b) => b.timestamp.compareTo(a.timestamp))
+    );
   }
 
   // --- AUTHENTICATION ---
@@ -1214,6 +1255,12 @@ class FirebaseService {
       }
       debugPrint("✓ İzin talepleri yüklendi.");
 
+      // 9. Yıl Sonu Değerlendirmelerini Yükle (evaluations)
+      for (var evaluation in _localEvaluations) {
+        await _dbRef!.child('evaluations').child(evaluation.id).set(evaluation.toMap());
+      }
+      debugPrint("✓ Yıl sonu değerlendirmeleri yüklendi.");
+
       debugPrint("🎉 Tüm mock veriler başarıyla Firebase Realtime Database'e aktarıldı!");
     } catch (e) {
       debugPrint("Veri aktarımı sırasında hata oluştu: $e");
@@ -1462,6 +1509,76 @@ class FirebaseService {
         } catch (e) {
           debugPrint("Error rejecting leave request on Firebase: $e");
         }
+      }
+    }
+    _notifyUpdates();
+  }
+
+  // --- EVALUATION METHODS ---
+
+  Future<void> getEvaluations() async {
+    _notifyUpdates();
+    if (_useFirebase) {
+      try {
+        _dbRef!.child('evaluations').onValue.listen((event) {
+          final data = event.snapshot.value;
+          final List<EvaluationModel> fbList = [];
+          if (data is Map) {
+            data.forEach((key, val) {
+              if (val is Map) {
+                try {
+                  fbList.add(EvaluationModel.fromMap(val, key.toString()));
+                } catch (e) {
+                  debugPrint("Error parsing evaluation $key: $e");
+                }
+              }
+            });
+          } else if (data is List) {
+            for (int i = 0; i < data.length; i++) {
+              final val = data[i];
+              if (val is Map) {
+                try {
+                  fbList.add(EvaluationModel.fromMap(val, i.toString()));
+                } catch (e) {
+                  debugPrint("Error parsing evaluation at index $i: $e");
+                }
+              }
+            }
+          }
+          _localEvaluations.clear();
+          _localEvaluations.addAll(fbList);
+          _notifyUpdates();
+        }, onError: (err) {
+          debugPrint("Firebase evaluations listener error: $err");
+          _notifyUpdates();
+        });
+      } catch (e) {
+        debugPrint("Error reading evaluations from Firebase: $e");
+      }
+    }
+  }
+
+  Future<void> submitEvaluation(EvaluationModel evaluation) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    _localEvaluations.add(evaluation);
+    
+    // Add notification to admin logs so HR knows about it
+    final notifId = "notif_" + const Uuid().v4();
+    final notif = {
+      'id': notifId,
+      'title': 'Yıl Sonu Değerlendirmesi',
+      'message': '${evaluation.managerName}, ${evaluation.subordinateName} için yıl sonu değerlendirmesini tamamladı. Skorlar: Perf: ${evaluation.performanceScore}, Ldr: ${evaluation.leadershipScore}, Coop: ${evaluation.cooperationScore}',
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+      'type': 'evaluation',
+    };
+    _localNotifications.insert(0, notif);
+
+    if (_useFirebase) {
+      try {
+        await _dbRef!.child('evaluations').child(evaluation.id).set(evaluation.toMap());
+        await _dbRef!.child('admin_notifications').child(notifId).set(notif);
+      } catch (e) {
+        debugPrint("Error writing evaluation to Firebase: $e");
       }
     }
     _notifyUpdates();

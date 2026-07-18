@@ -96,6 +96,9 @@
 
   <!-- ==================== DASHBOARD CONTAINER ==================== -->
   <div id="dashboard-container" class="dashboard-wrapper hidden">
+    <!-- Sidebar Overlay for Mobile -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    
     <!-- LEFT SIDEBAR -->
     <aside class="sidebar">
       <div class="sidebar-brand">
@@ -125,6 +128,10 @@
           <span class="material-icons-round">time_to_leave</span>
           <span>İzin Talepleri</span>
         </a>
+        <a href="#" class="menu-item" data-tab="degerlendirmeler">
+          <span class="material-icons-round">assignment_turned_in</span>
+          <span>Değerlendirmeler</span>
+        </a>
         <a href="#" class="menu-item" data-tab="loglar">
           <span class="material-icons-round">history_toggle_off</span>
           <span>Sistem Logları</span>
@@ -143,7 +150,12 @@
     <main class="main-content">
       <!-- Topbar Header -->
       <header class="topbar">
-        <h1 id="page-title">Paylaşım Onayları</h1>
+        <div class="topbar-left">
+          <button id="btn-sidebar-toggle" class="btn-icon-only" title="Menü">
+            <span class="material-icons-round">menu</span>
+          </button>
+          <h1 id="page-title">Paylaşım Onayları</h1>
+        </div>
         <div class="user-profile">
           <div class="profile-avatar">ZT</div>
           <div class="profile-info">
@@ -252,6 +264,22 @@
                 <tr><td colspan="4" class="table-loading">Yükleniyor...</td></tr>
               </tbody>
             </table>
+          </div>
+        </section>
+
+        <!-- ==================== TAB 6: DEĞERLENDİRMELER ==================== -->
+        <section id="tab-degerlendirmeler" class="tab-pane">
+          <div class="section-actions-bar">
+            <div class="stats-card">
+              <div class="stats-info">
+                <span class="stats-label">Yıl Sonu Değerlendirmeleri</span>
+                <h3 class="stats-value">Performans Raporları</h3>
+              </div>
+            </div>
+          </div>
+
+          <div id="evaluations-list" class="list-container">
+            <div class="loading-spinner">Yükleniyor...</div>
           </div>
         </section>
 

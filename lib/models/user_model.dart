@@ -11,6 +11,7 @@ class UserModel {
   final String extension; // Dahili No (e.g. "1402")
   final String employeeCode; // Çalışan Kodu (e.g. "IHH-283")
   final String department; // Birim / Departman (e.g. "Dış İlişkiler Birimi")
+  final String? managerId; // Yöneticinin UID'si (e.g. "uid_employee")
 
   UserModel({
     required this.uid,
@@ -25,6 +26,7 @@ class UserModel {
     required this.extension,
     required this.employeeCode,
     required this.department,
+    this.managerId,
   });
 
   String get fullName => '$name $surname';
@@ -75,6 +77,7 @@ class UserModel {
       extension: map['extension'] ?? defaultExtension,
       employeeCode: map['employeeCode'] ?? defaultEmpCode,
       department: map['department'] ?? defaultDept,
+      managerId: map['managerId'],
     );
   }
 
@@ -92,6 +95,7 @@ class UserModel {
       'extension': extension,
       'employeeCode': employeeCode,
       'department': department,
+      'managerId': managerId,
     };
   }
 
@@ -107,6 +111,7 @@ class UserModel {
     String? extension,
     String? employeeCode,
     String? department,
+    String? managerId,
   }) {
     return UserModel(
       uid: uid,
@@ -121,6 +126,7 @@ class UserModel {
       extension: extension ?? this.extension,
       employeeCode: employeeCode ?? this.employeeCode,
       department: department ?? this.department,
+      managerId: managerId ?? this.managerId,
     );
   }
 }

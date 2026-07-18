@@ -25,6 +25,11 @@ const loginCard = document.getElementById('login-card');
 const tfaCard = document.getElementById('tfa-card');
 const dashboardContainer = document.getElementById('dashboard-container');
 
+// Responsive UI elements
+const sidebar = document.querySelector('.sidebar');
+const btnSidebarToggle = document.getElementById('btn-sidebar-toggle');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+
 const loginForm = document.getElementById('login-form');
 const loginEmail = document.getElementById('login-email');
 const loginPassword = document.getElementById('login-password');
@@ -73,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupTfaInputs();
   setupTabNavigation();
   setupModals();
+  setupMobileSidebar();
   
   // Login Form Submission
   loginForm.addEventListener('submit', (e) => {
@@ -240,6 +246,29 @@ function logout() {
 
   tfaCard.classList.remove('active');
   loginCard.classList.add('active');
+  
+  closeMobileSidebar();
+}
+
+// Responsive Sidebar Helpers
+function setupMobileSidebar() {
+  if (!btnSidebarToggle || !sidebarOverlay || !sidebar) return;
+
+  btnSidebarToggle.addEventListener('click', () => {
+    sidebar.classList.add('open');
+    sidebarOverlay.classList.add('active');
+  });
+
+  sidebarOverlay.addEventListener('click', () => {
+    closeMobileSidebar();
+  });
+}
+
+function closeMobileSidebar() {
+  if (sidebar && sidebarOverlay) {
+    sidebar.classList.remove('open');
+    sidebarOverlay.classList.remove('active');
+  }
 }
 
 function showError(element, msg) {
@@ -268,9 +297,12 @@ function setupTabNavigation() {
         'crm': 'CRM / Çalışanlar',
         'bordrolar': 'Bordro Yönetimi',
         'izinler': 'İzin Talepleri',
+        'degerlendirmeler': 'Yıl Sonu Değerlendirmeleri',
         'loglar': 'Sistem Logları'
       };
       pageTitle.textContent = labels[tabId] || 'Panel';
+      
+      closeMobileSidebar();
     });
   });
 }
@@ -348,6 +380,12 @@ function startDatabaseListeners() {
   db.ref('logs').on('value', (snapshot) => {
     const data = snapshot.val();
     renderLogs(data);
+  });
+
+  // 6. Listen to Evaluations (Yıl Sonu Değerlendirmeleri)
+  db.ref('evaluations').on('value', (snapshot) => {
+    const data = snapshot.val();
+    renderEvaluations(data);
   });
 }
 
@@ -810,4 +848,69 @@ function renderEmptyState(container, icon, title, desc) {
       <p>${desc}</p>
     </div>
   `;
+}
+
+// RENDER TAB 6: DEĞERLENDİRMELER
+function renderEvaluations(data) {
+  const evaluationsList = document.getElementById('evaluations-list');
+  if (!evaluationsList) return;
+  evaluationsList.innerHTML = '';
+  
+  if (!data) {
+    renderEmptyState(evaluationsList, "assignment_turned_in", "Değerlendirme Bulunmuyor", "Sistemde gönderilmiş yıl sonu değerlendirme raporu bulunmamaktadır.");
+    return;
+  }
+
+  const items = [];
+  if (Array.isArray(data)) {
+    data.forEach((val, i) => {
+      if (val) items.push({ ...val, id: i.toString() });
+    });
+  } else {
+    Object.keys(data).forEach(key => {
+      items.push({ ...data[key], id: key });
+    });
+  }
+
+  if (items.length === 0) {
+    renderEmptyState(evaluationsList, "assignment_turned_in", "Değerlendirme Bulunmuyor", "Sistemde gönderilmiş yıl sonu değerlendirme raporu bulunmamaktadır.");
+    return;
+  }
+
+  // Sort by timestamp desc
+  items.sort((a, b) => b.timestamp - a.timestamp);
+
+  items.forEach(eval => {
+    const card = document.createElement('div');
+    card.className = 'approval-card';
+    card.style.marginBottom = '20px';
+    
+    const avgScore = ((eval.performanceScore || 0) + (eval.leadershipScore || 0) + (eval.cooperationScore || 0)) / 3.0;
+
+    card.innerHTML = `
+      <div class="eval-card-header">
+        <div class="eval-author-info">
+          <div class="eval-author-avatar">${eval.subordinateName ? eval.subordinateName.substring(0,1).toUpperCase() : 'P'}</div>
+          <div class="eval-author-details">
+            <span class="eval-author-name">${eval.subordinateName || 'Çalışan'}</span>
+            <span class="eval-author-title">Yönetici: ${eval.managerName || 'Yönetici'}</span>
+          </div>
+        </div>
+        <span class="eval-badge">Ortalama: ${avgScore.toFixed(1)} / 5</span>
+      </div>
+      <div class="approval-card-body">
+        <div class="eval-scores-container">
+          <div class="eval-score-item">Performans: <b>${eval.performanceScore || 0} / 5</b></div>
+          <div class="eval-score-item">Liderlik: <b>${eval.leadershipScore || 0} / 5</b></div>
+          <div class="eval-score-item">Uyum: <b>${eval.cooperationScore || 0} / 5</b></div>
+        </div>
+        <h4 class="eval-section-title">Geri Bildirim / Değerlendirme Notu</h4>
+        <p class="eval-desc">${eval.feedback || ''}</p>
+      </div>
+      <div class="eval-footer">
+        <span>${eval.year || '2026'} Dönemi</span>
+      </div>
+    `;
+    evaluationsList.appendChild(card);
+  });
 }

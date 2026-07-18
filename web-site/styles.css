@@ -28,6 +28,9 @@
   --radius-md: 12px;
   --radius-lg: 16px;
   --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  --gradient-primary: linear-gradient(135deg, var(--primary-dark) 0%, var(--accent-dark) 100%);
+  --surface-light: #f8fafc;
 }
 
 * {
@@ -1193,4 +1196,278 @@ input, button, select, textarea {
 
 .btn-submit:hover {
   background-color: #043f2e;
+}
+
+.btn-icon-only {
+  display: none;
+}
+
+/* ==================== EVALUATIONS RESPONSIVE STYLING ==================== */
+.eval-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.eval-author-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.eval-author-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.eval-author-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.eval-author-name {
+  font-weight: bold;
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.eval-author-title {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.eval-badge {
+  font-size: 11px;
+  padding: 4px 10px;
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  font-weight: bold;
+  border-radius: 8px;
+}
+
+.eval-scores-container {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  background: var(--bg-secondary);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.eval-score-item {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.eval-section-title {
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.eval-desc {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin-bottom: 0;
+  white-space: pre-line;
+}
+
+.eval-footer {
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ==================== RESPONSIVE LAYOUT & MEDIA QUERIES ==================== */
+
+/* Tablet & Mobile Screens */
+@media (max-width: 768px) {
+  .dashboard-wrapper {
+    flex-direction: column;
+  }
+
+  /* Hamburger Menu Button */
+  #btn-sidebar-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 8px;
+    border-radius: 50%;
+    transition: var(--transition);
+  }
+
+  #btn-sidebar-toggle:hover {
+    background-color: var(--bg-secondary);
+  }
+
+  #btn-sidebar-toggle span {
+    font-size: 24px;
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Sidebar transition to Drawer Overlay */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Sidebar Mobile Backdrop Overlay */
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Topbar structure modifications */
+  .topbar {
+    padding: 12px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .main-content {
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .content-body {
+    padding: 16px;
+  }
+
+  /* Card Grid layout adjustments */
+  .cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  /* Modal responsive wrapper */
+  .modal-card {
+    width: calc(100% - 24px);
+    margin: 12px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+  }
+}
+
+/* Small Mobile Screens */
+@media (max-width: 576px) {
+  /* Hide profile text details, display avatar only */
+  .profile-info {
+    display: none;
+  }
+
+  .topbar h1 {
+    font-size: 18px;
+  }
+
+  /* Stack columns in forms vertically */
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Stacking elements in employee action and stats card */
+  .stats-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .stats-card .btn-action {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Evaluation card layout adaptation */
+  .eval-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .eval-badge {
+    align-self: flex-start;
+  }
+
+  .eval-scores-container {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* Extra Small Screens (2FA inputs fix) */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 24px 16px;
+  }
+
+  .auth-header h1 {
+    font-size: 24px;
+  }
+
+  /* Scale TFA box inputs down so all 6 elements fit within width */
+  .tfa-box {
+    width: 40px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .tfa-code-inputs {
+    gap: 6px;
+    margin: 16px 0;
+  }
 }

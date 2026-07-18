@@ -4,6 +4,7 @@ import '../models/announcement_model.dart';
 import '../models/user_model.dart';
 import '../models/payroll_model.dart';
 import '../models/leave_request_model.dart';
+import '../models/evaluation_model.dart';
 import '../services/firebase_service.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
@@ -29,6 +30,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     _loadPendingRequests();
     _firebaseService.getPayrolls();
     _firebaseService.getLeaveRequests();
+    _firebaseService.getEvaluations();
   }
 
   @override
@@ -1156,6 +1158,145 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 );
               }).toList(),
             ),
+          ),
+          const SizedBox(height: 20),
+          _buildChartContainer(
+            "Yıl Sonu Personel Değerlendirme Raporları",
+            StreamBuilder<List<EvaluationModel>>(
+              stream: _firebaseService.evaluationsStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator(color: AppColors.buttonDark));
+                }
+
+                final evaluations = snapshot.data ?? [];
+
+                if (evaluations.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20.0),
+                    child: Center(
+                      child: Text(
+                        "Henüz gönderilmiş değerlendirme raporu bulunmuyor.",
+                        style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: evaluations.length,
+                  itemBuilder: (context, index) {
+                    final eval = evaluations[index];
+                    final double avgScore = (eval.performanceScore + eval.leadershipScore + eval.cooperationScore) / 3.0;
+
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      color: AppColors.surface,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      eval.subordinateName,
+                                      style: const TextStyle(
+                                        fontFamily: 'DINPro',
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      "Yönetici: ${eval.managerName}",
+                                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.accent.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    "Ort: ${avgScore.toStringAsFixed(1)} / 5",
+                                    style: const TextStyle(
+                                      fontFamily: 'DINPro',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                      color: AppColors.accent,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Divider(height: 24),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _buildScoreBadge("Performans", eval.performanceScore),
+                                _buildScoreBadge("Liderlik", eval.leadershipScore),
+                                _buildScoreBadge("Uyum", eval.cooperationScore),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              "Geri Bildirim / Not:",
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppColors.textSecondary),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              eval.feedback,
+                              style: const TextStyle(fontSize: 13, height: 1.4, color: AppColors.textPrimary),
+                            ),
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: Text(
+                                "${eval.year} Dönemi",
+                                style: const TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScoreBadge(String label, int score) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLight,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            "$label: ",
+            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+          ),
+          Text(
+            "$score",
+            style: const TextStyle(fontFamily: 'DINPro', fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.accent),
           ),
         ],
       ),
