@@ -293,33 +293,44 @@
         <section id="tab-analitik" class="tab-pane active">
           <div class="analytics-grid">
             <div class="chart-card">
-              <h3>Departman Dağılımı</h3>
+              <h3>İzin Talebi Türü Dağılımı</h3>
               <div class="chart-container">
                 <canvas id="dept-pie-chart"></canvas>
               </div>
             </div>
             <div class="chart-card">
-              <h3>Genel Performans Değerlendirmeleri</h3>
+              <h3>Departman Bazlı Aylık İK Bütçesi (Net Maaş + Ödenekler)</h3>
               <div class="chart-container">
                 <canvas id="performance-bar-chart"></canvas>
+              </div>
+            </div>
+            <div class="chart-card">
+              <h3>Departman Bazlı Ortalama Performans Skorları</h3>
+              <div class="chart-container">
+                <canvas id="aid-line-chart"></canvas>
               </div>
             </div>
           </div>
           <div class="analytics-stats-row">
             <div class="mini-stat-card">
-              <span class="stat-label">Saha Tükenmişlik Riski</span>
+              <span class="stat-label">Saha Tükenmişlik & Rotasyon Alarmı</span>
               <span class="stat-value text-danger" id="stat-burnout-count">0 Personel</span>
-              <span class="stat-desc">Acil psikolog yönlendirmesi gerekiyor.</span>
+              <span class="stat-desc">Psikososyal destek ve acil rotasyon gereken personel.</span>
             </div>
             <div class="mini-stat-card">
-              <span class="stat-label">Aktif Görevdeki Personel</span>
-              <span class="stat-value text-success" id="stat-active-field-count">0 Kişi</span>
-              <span class="stat-desc">Farklı dış sahalarda aktif operasyonda.</span>
+              <span class="stat-label">Ortalama Kalan Yıllık İzin</span>
+              <span class="stat-value text-success" id="stat-active-field-count">0 Gün</span>
+              <span class="stat-desc">Çalışanların dinlenme hakları genel bakiyesi.</span>
             </div>
             <div class="mini-stat-card">
-              <span class="stat-label">Kalan Ortalama Yıllık İzin</span>
-              <span class="stat-value" id="stat-avg-leave-days">0 Gün</span>
-              <span class="stat-desc">Personel başına düşen izin hakkı.</span>
+              <span class="stat-label">Aylık Toplam İK Bütçe Yükü</span>
+              <span class="stat-value" id="stat-avg-leave-days">0 TL</span>
+              <span class="stat-desc">Maaş ve ödenekler dahil son dönem toplam İK maliyeti.</span>
+            </div>
+            <div class="mini-stat-card">
+              <span class="stat-label">Kurum İçi Uyum & Koordinasyon</span>
+              <span class="stat-value text-primary" id="stat-volunteer-rate">0 / 5</span>
+              <span class="stat-desc">Değerlendirmelerdeki ortalama ekip iş birliği puanı.</span>
             </div>
           </div>
         </section>
