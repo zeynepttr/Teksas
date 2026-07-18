@@ -7,7 +7,7 @@ import '../constants/app_colors.dart';
 // =====================================================================
 // Hane AI Agent Chat Ekranı
 // Gemini REST API v1 – direkt HTTP çağrısı (SDK bağımsız)
-// Desteklenen modeller: gemini-2.5-flash, gemini-2.0-flash, gemini-1.5-flash vb.
+// Desteklenen modeller: gemini-3.5-flash vb.
 // =====================================================================
 
 class HaneAgentScreen extends StatefulWidget {
@@ -29,8 +29,8 @@ class _HaneAgentScreenState extends State<HaneAgentScreen>
   static const String _apiKey = 'AQ.Ab8RN6I0JihPhUu1SZINZM7-1QVjeN8x2KEPGZBNEPeGhR8WvA';
 
   // Gemini REST API v1beta — SDK kullanmadan doğrudan HTTP
-  // Bu endpoint tüm yeni modelleri destekler (gemini-2.5-flash dahil)
-  static const String _model = 'gemini-1.5-flash';
+  // Bu endpoint tüm yeni modelleri destekler (gemini-3.5-flash dahil)
+  static const String _model = 'gemini-3.5-flash';
   static String get _endpoint =>
       'https://generativelanguage.googleapis.com/v1beta/models/$_model:generateContent?key=$_apiKey';
 
