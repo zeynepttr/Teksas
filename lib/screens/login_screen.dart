@@ -15,9 +15,9 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _codeController = TextEditingController();
+  final _emailController = TextEditingController(text: "admin@hane.org.tr");
+  final _passwordController = TextEditingController(text: "hane1234");
+  final _codeController = TextEditingController(text: "123456");
   
   bool _isLoading = false;
   bool _show2FA = false;
@@ -223,39 +223,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 32),
 
-                          // Quick test credentials help text
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.surfaceLight, width: 1),
-                            ),
-                            child: const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Hızlı Giriş Bilgileri:",
-                                  style: TextStyle(
-                                    fontFamily: 'DINPro',
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                                SizedBox(height: 6),
-                                Text(
-                                  "• İHH Çalışanı: employee@hane.org.tr\n• İK Admin: admin@hane.org.tr\n• Şifre (ortak): hane1234",
-                                  style: TextStyle(
-                                    fontFamily: 'DINPro',
-                                    fontSize: 12,
-                                    color: AppColors.textMuted,
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                         ],
                       ),
                     ),

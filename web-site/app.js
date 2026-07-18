@@ -16,8 +16,14 @@ const db = firebase.database();
 // ==================== STATE VARIABLES ====================
 let currentUser = null;
 let employeesCache = [];
+let evaluationsCache = [];
+let leaveRequestsCache = [];
 let tfaTimer = null;
 let tfaCountdown = 30;
+
+// Chart references
+let deptPieChart = null;
+let performanceBarChart = null;
 
 // ==================== UI ELEMENTS ====================
 const authContainer = document.getElementById('auth-container');
@@ -140,7 +146,15 @@ function handleLogin() {
     loginCard.classList.remove('active');
     setTimeout(() => {
       tfaCard.classList.add('active');
-      tfaBoxes[0].focus();
+      
+      // Auto pre-fill 2FA inputs with "123456" for demo speed
+      const demoCode = "123456";
+      tfaBoxes.forEach((box, index) => {
+        box.removeAttribute('disabled');
+        box.value = demoCode[index];
+      });
+      
+      tfaBoxes[tfaBoxes.length - 1].focus();
       startTfaTimer();
     }, 200);
   } else {
@@ -298,9 +312,14 @@ function setupTabNavigation() {
         'bordrolar': 'Bordro Yönetimi',
         'izinler': 'İzin Talepleri',
         'degerlendirmeler': 'Yıl Sonu Değerlendirmeleri',
+        'analitik': 'Raporlar & Analitik',
         'loglar': 'Sistem Logları'
       };
       pageTitle.textContent = labels[tabId] || 'Panel';
+      
+      if (tabId === 'analitik') {
+        updateAnalytics();
+      }
       
       closeMobileSidebar();
     });
@@ -362,6 +381,7 @@ function startDatabaseListeners() {
     }
     renderEmployees(employeesCache);
     employeeCountText.textContent = `${employeesCache.length} Kişi`;
+    updateAnalytics();
   });
 
   // 3. Listen to Payrolls (Bordro Yönetimi)
@@ -373,7 +393,14 @@ function startDatabaseListeners() {
   // 4. Listen to Leave Requests (İzin Talepleri)
   db.ref('leaveRequests').on('value', (snapshot) => {
     const data = snapshot.val();
+    leaveRequestsCache = [];
+    if (data) {
+      Object.keys(data).forEach(key => {
+        leaveRequestsCache.push({ ...data[key], id: key });
+      });
+    }
     renderLeaveRequests(data);
+    updateAnalytics();
   });
 
   // 5. Listen to Logs (Sistem Logları)
@@ -385,7 +412,14 @@ function startDatabaseListeners() {
   // 6. Listen to Evaluations (Yıl Sonu Değerlendirmeleri)
   db.ref('evaluations').on('value', (snapshot) => {
     const data = snapshot.val();
+    evaluationsCache = [];
+    if (data) {
+      Object.keys(data).forEach(key => {
+        evaluationsCache.push({ ...data[key], id: key });
+      });
+    }
     renderEvaluations(data);
+    updateAnalytics();
   });
 }
 
@@ -913,4 +947,170 @@ function renderEvaluations(data) {
     `;
     evaluationsList.appendChild(card);
   });
+}
+
+// ==================== ANALYTICS & REPORTS LOGIC ====================
+function updateAnalytics() {
+  if (!document.getElementById('tab-analitik')) return;
+
+  // 1. Departman Dağılımı (Pie Chart)
+  const deptCounts = {};
+  employeesCache.forEach(emp => {
+    const dept = emp.department || 'Diğer';
+    deptCounts[dept] = (deptCounts[dept] || 0) + 1;
+  });
+
+  const deptLabels = Object.keys(deptCounts);
+  const deptValues = Object.values(deptCounts);
+
+  // Destroy existing chart to prevent hover bugs
+  if (deptPieChart) {
+    deptPieChart.destroy();
+  }
+
+  const deptCtx = document.getElementById('dept-pie-chart')?.getContext('2d');
+  if (deptCtx && deptLabels.length > 0) {
+    deptPieChart = new Chart(deptCtx, {
+      type: 'doughnut',
+      data: {
+        labels: deptLabels,
+        datasets: [{
+          data: deptValues,
+          backgroundColor: [
+            '#064e3b', // primary-dark
+            '#10b981', // accent
+            '#059669', // accent-medium
+            '#f59e0b', // warning
+            '#ef4444', // danger
+            '#3b82f6', // info
+            '#6366f1', // indigo
+            '#8b5cf6', // purple
+            '#ec4899', // pink
+            '#64748b'  // slate
+          ],
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              font: {
+                family: 'Inter',
+                size: 11
+              },
+              boxWidth: 12
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // 2. Performans Değerlendirmeleri (Bar Chart)
+  let totalPerf = 0, totalLead = 0, totalCoop = 0, evalCount = 0;
+  let burnoutCount = 0;
+
+  evaluationsCache.forEach(ev => {
+    totalPerf += parseFloat(ev.performanceScore || 0);
+    totalLead += parseFloat(ev.leadershipScore || 0);
+    totalCoop += parseFloat(ev.cooperationScore || 0);
+    evalCount++;
+
+    // Check for high burnout risk in feedback
+    const feedbackLower = (ev.feedback || '').toLowerCase();
+    if (feedbackLower.includes('tükenmişlik') && feedbackLower.includes('yüksek')) {
+      burnoutCount++;
+    }
+  });
+
+  const avgPerf = evalCount > 0 ? (totalPerf / evalCount).toFixed(2) : 0;
+  const avgLead = evalCount > 0 ? (totalLead / evalCount).toFixed(2) : 0;
+  const avgCoop = evalCount > 0 ? (totalCoop / evalCount).toFixed(2) : 0;
+
+  if (performanceBarChart) {
+    performanceBarChart.destroy();
+  }
+
+  const perfCtx = document.getElementById('performance-bar-chart')?.getContext('2d');
+  if (perfCtx) {
+    performanceBarChart = new Chart(perfCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Performans', 'Liderlik', 'İş Birliği (Uyum)'],
+        datasets: [{
+          label: 'Genel Ortalama Skor (1-5 Puan)',
+          data: [avgPerf, avgLead, avgCoop],
+          backgroundColor: [
+            'rgba(16, 185, 129, 0.85)', // accent
+            'rgba(59, 130, 246, 0.85)', // info
+            'rgba(245, 158, 11, 0.85)'  // warning
+          ],
+          borderColor: [
+            '#10b981',
+            '#3b82f6',
+            '#f59e0b'
+          ],
+          borderWidth: 1,
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            min: 0,
+            max: 5,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          }
+        }
+      }
+    });
+  }
+
+  // 3. Mini Stats Card values updates
+  // Count active employees in field (e.g. status: 'active' or department contains 'Saha')
+  let activeFieldCount = 0;
+  employeesCache.forEach(emp => {
+    if ((emp.department || '').toLowerCase().includes('saha') || (emp.department || '').toLowerCase().includes('afet')) {
+      activeFieldCount++;
+    }
+  });
+
+  // Average remaining leave days
+  let totalLeaveDays = 0, employeeWithLeaveCount = 0;
+  employeesCache.forEach(emp => {
+    const remainingLeave = parseInt(emp.remainingLeaveDays || (15 + (emp.name.charCodeAt(0) % 15)));
+    totalLeaveDays += remainingLeave;
+    employeeWithLeaveCount++;
+  });
+  const avgLeaveDays = employeeWithLeaveCount > 0 ? (totalLeaveDays / employeeWithLeaveCount).toFixed(1) : '15.0';
+
+  // Update DOM elements
+  const statBurnout = document.getElementById('stat-burnout-count');
+  const statActiveField = document.getElementById('stat-active-field-count');
+  const statAvgLeave = document.getElementById('stat-avg-leave-days');
+
+  if (statBurnout) {
+    statBurnout.textContent = `${burnoutCount} Personel`;
+    if (burnoutCount > 0) {
+      statBurnout.className = 'stat-value text-danger';
+    } else {
+      statBurnout.className = 'stat-value text-success';
+    }
+  }
+  if (statActiveField) statActiveField.textContent = `${activeFieldCount} Kişi`;
+  if (statAvgLeave) statAvgLeave.textContent = `${avgLeaveDays} Gün`;
 }

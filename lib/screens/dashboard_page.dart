@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../constants/app_colors.dart';
 import '../services/firebase_service.dart';
 import 'marketplace_screen.dart';
@@ -39,6 +40,90 @@ class _DashboardPageState extends State<DashboardPage> {
       "image": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=300&auto=format&fit=crop"
     }
   ];
+
+  Timer? _joinTimer;
+  Map<String, int>? _timeSinceJoin;
+
+  @override
+  void initState() {
+    super.initState();
+    _startJoinTimer();
+  }
+
+  @override
+  void dispose() {
+    _joinTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startJoinTimer() {
+    final user = _firebaseService.currentUser;
+    if (user != null) {
+      _updateTimeSinceJoin(user.joinTimestamp);
+      _joinTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (mounted) {
+          setState(() {
+            _updateTimeSinceJoin(user.joinTimestamp);
+          });
+        }
+      });
+    }
+  }
+
+  void _updateTimeSinceJoin(int joinTimestamp) {
+    _timeSinceJoin = _calculateTimeSinceJoin(joinTimestamp);
+  }
+
+  Map<String, int> _calculateTimeSinceJoin(int joinTimestampMs) {
+    DateTime joinDate = DateTime.fromMillisecondsSinceEpoch(joinTimestampMs);
+    DateTime now = DateTime.now();
+
+    if (now.isBefore(joinDate)) {
+      return {'years': 0, 'days': 0, 'hours': 0, 'minutes': 0, 'seconds': 0};
+    }
+
+    int years = now.year - joinDate.year;
+    
+    DateTime anniversaryThisYear = DateTime(now.year, joinDate.month, joinDate.day, joinDate.hour, joinDate.minute, joinDate.second);
+    
+    DateTime lastAnniversary = anniversaryThisYear;
+    if (now.isBefore(anniversaryThisYear)) {
+      years--;
+      lastAnniversary = DateTime(now.year - 1, joinDate.month, joinDate.day, joinDate.hour, joinDate.minute, joinDate.second);
+    }
+
+    Duration durationSinceAnniversary = now.difference(lastAnniversary);
+    
+    int days = durationSinceAnniversary.inDays;
+    int hours = durationSinceAnniversary.inHours % 24;
+    int minutes = durationSinceAnniversary.inMinutes % 60;
+    int seconds = durationSinceAnniversary.inSeconds % 60;
+
+    return {
+      'years': years,
+      'days': days,
+      'hours': hours,
+      'minutes': minutes,
+      'seconds': seconds,
+    };
+  }
+
+  String _formatTimeSinceJoinText() {
+    if (_timeSinceJoin == null) return "";
+    final y = _timeSinceJoin!['years']!;
+    final d = _timeSinceJoin!['days']!;
+    final h = _timeSinceJoin!['hours']!;
+    final m = _timeSinceJoin!['minutes']!;
+    final s = _timeSinceJoin!['seconds']!;
+    
+    String text = "";
+    if (y > 0) text += "$y yıl ";
+    if (d > 0 || y > 0) text += "$d gün ";
+    text += "$h saat $m dakika $s saniye";
+    return text;
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -154,6 +239,50 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ],
                 ),
+                
+                // Join Ticker Card (KoçAilem style)
+                if (_timeSinceJoin != null) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.darkGreen.withOpacity(0.2),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "İHH Hanemizin üyesi olduğunuz süre",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white70,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _formatTimeSinceJoinText(),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 20),
 
                 // 3. Search Bar

@@ -15,6 +15,8 @@
   <!-- Firebase SDK (Compat Version for Vanilla JS) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -35,7 +37,7 @@
           <label for="login-email">E-posta</label>
           <div class="input-wrapper">
             <span class="material-icons-round input-icon">mail_outline</span>
-            <input type="email" id="login-email" placeholder="admin@hane.org.tr" required>
+            <input type="email" id="login-email" placeholder="admin@hane.org.tr" value="admin@hane.org.tr" required>
           </div>
         </div>
 
@@ -43,7 +45,7 @@
           <label for="login-password">Şifre</label>
           <div class="input-wrapper">
             <span class="material-icons-round input-icon">lock_outline</span>
-            <input type="password" id="login-password" placeholder="••••••" required>
+            <input type="password" id="login-password" placeholder="••••••" value="123456" required>
           </div>
         </div>
 
@@ -112,7 +114,7 @@
       </div>
 
       <nav class="sidebar-menu">
-        <a href="#" class="menu-item active" data-tab="onaylar">
+        <a href="#" class="menu-item" data-tab="onaylar">
           <span class="material-icons-round">rate_review</span>
           <span>Paylaşım Onayları</span>
         </a>
@@ -131,6 +133,10 @@
         <a href="#" class="menu-item" data-tab="degerlendirmeler">
           <span class="material-icons-round">assignment_turned_in</span>
           <span>Değerlendirmeler</span>
+        </a>
+        <a href="#" class="menu-item active" data-tab="analitik">
+          <span class="material-icons-round">analytics</span>
+          <span>Raporlar & Analitik</span>
         </a>
         <a href="#" class="menu-item" data-tab="loglar">
           <span class="material-icons-round">history_toggle_off</span>
@@ -154,7 +160,7 @@
           <button id="btn-sidebar-toggle" class="btn-icon-only" title="Menü">
             <span class="material-icons-round">menu</span>
           </button>
-          <h1 id="page-title">Paylaşım Onayları</h1>
+          <h1 id="page-title">Raporlar & Analitik</h1>
         </div>
         <div class="user-profile">
           <div class="profile-avatar">ZT</div>
@@ -169,7 +175,7 @@
       <div class="content-body">
         
         <!-- ==================== TAB 1: PAYLAŞIM ONAYLARI ==================== -->
-        <section id="tab-onaylar" class="tab-pane active">
+        <section id="tab-onaylar" class="tab-pane">
           <div id="approvals-list" class="list-container">
             <!-- Dynamic approvals cards go here -->
             <div class="loading-spinner">Yükleniyor...</div>
@@ -280,6 +286,41 @@
 
           <div id="evaluations-list" class="list-container">
             <div class="loading-spinner">Yükleniyor...</div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB 7: RAPORLAR & ANALİTİK ==================== -->
+        <section id="tab-analitik" class="tab-pane active">
+          <div class="analytics-grid">
+            <div class="chart-card">
+              <h3>Departman Dağılımı</h3>
+              <div class="chart-container">
+                <canvas id="dept-pie-chart"></canvas>
+              </div>
+            </div>
+            <div class="chart-card">
+              <h3>Genel Performans Değerlendirmeleri</h3>
+              <div class="chart-container">
+                <canvas id="performance-bar-chart"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="analytics-stats-row">
+            <div class="mini-stat-card">
+              <span class="stat-label">Saha Tükenmişlik Riski</span>
+              <span class="stat-value text-danger" id="stat-burnout-count">0 Personel</span>
+              <span class="stat-desc">Acil psikolog yönlendirmesi gerekiyor.</span>
+            </div>
+            <div class="mini-stat-card">
+              <span class="stat-label">Aktif Görevdeki Personel</span>
+              <span class="stat-value text-success" id="stat-active-field-count">0 Kişi</span>
+              <span class="stat-desc">Farklı dış sahalarda aktif operasyonda.</span>
+            </div>
+            <div class="mini-stat-card">
+              <span class="stat-label">Kalan Ortalama Yıllık İzin</span>
+              <span class="stat-value" id="stat-avg-leave-days">0 Gün</span>
+              <span class="stat-desc">Personel başına düşen izin hakkı.</span>
+            </div>
           </div>
         </section>
 

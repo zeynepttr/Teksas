@@ -1208,7 +1208,7 @@ input, button, select, textarea {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--border-color);
-  padding-bottom: 12px;
+  padding: 16px 24px;
   margin-bottom: 12px;
 }
 
@@ -1288,7 +1288,7 @@ input, button, select, textarea {
 }
 
 .eval-footer {
-  padding-top: 10px;
+  padding: 12px 24px 16px 24px;
   border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
@@ -1469,5 +1469,95 @@ input, button, select, textarea {
   .tfa-code-inputs {
     gap: 6px;
     margin: 16px 0;
+  }
+}
+
+/* ==================== ANALYTICS & REPORTS ==================== */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.chart-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.chart-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.chart-card h3 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.chart-container {
+  position: relative;
+  height: 320px;
+  width: 100%;
+}
+
+.analytics-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.mini-stat-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+}
+
+.mini-stat-card .stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.mini-stat-card .stat-value {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.mini-stat-card .stat-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.text-danger {
+  color: #ef4444 !important;
+}
+
+.text-success {
+  color: #10b981 !important;
+}
+
+@media (max-width: 576px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
   }
 }
