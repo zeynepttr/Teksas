@@ -150,6 +150,14 @@ Platformun mobil cihazlarda çalışmasının yanı sıra, İK uzmanları için 
 
 ---
 
+## 👥 Proje Sahipleri
+
+*   **Zeynep Kapsız**
+*   **Tuğba Cin**
+*   **Zeynep Tatar**
+
+---
+
 <p align="center">
   <i>Hane, İHH çalışanlarının gücüne güç katmak ve toplumsal faydayı teknolojiyle birleştirmek için geliştirilmeye devam ediyor. 💚</i>
 </p>
