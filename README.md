@@ -71,27 +71,6 @@ Platformun mobil cihazlarda çalışmasının yanı sıra, İK uzmanları için 
 
 ---
 
-### 🖥️ Responsive İK Yönetici Paneli
-
-<p align="center">
-  <img src="Hane-ScreenShots/Screenshot_1784376791.png" width="48%" alt="Yönetici Paneli - CRM ve Çalışan Yönetimi" />
-  <img src="Hane-ScreenShots/Screenshot_1784376824.png" width="48%" alt="Yönetici Paneli - İzin Talepleri" />
-</p>
-
-<p align="center">
-  <img src="Hane-ScreenShots/Screenshot_1784376839.png" width="48%" alt="Yönetici Paneli - Maaş Bordroları" />
-  <img src="Hane-ScreenShots/Screenshot_1784376851.png" width="48%" alt="Yönetici Paneli - Sistem Logları" />
-</p>
-
-<p align="center">
-  <i>Geniş Ekran Uyumlu İK Yönetici Arayüzü: CRM Analitiği, İzin Takibi, Bordro Dağıtımı ve Güvenlik Denetimi</i>
-</p>
-
-> [!NOTE]  
-> Uygulamanın çalışma videoları ve interaktif demoları **`Hane-ScreenShots/hanekayıt.mp4`** ve **`Hane-ScreenShots/Kayıt2.mp4`** dosyalarında yer almaktadır.
-
----
-
 ## 🛠️ Teknolojik Altyapı ve Kütüphaneler
 
 *   **UI Framework:** [Flutter (Dart SDK ^3.10.7)](https://flutter.dev/) - Çapraz platform mobil ve web arayüzü.
