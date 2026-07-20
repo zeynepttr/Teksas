@@ -60,9 +60,21 @@ Platformun mobil cihazlarda çalışmasının yanı sıra, İK uzmanları için 
 ### 📱 Mobil Uygulama Arayüzü
 
 <p align="center">
-  <img src="Hane-ScreenShots/Screenshot_1784367966.png" width="30%" alt="Hane Ana Sayfa" />
-  <img src="Hane-ScreenShots/Screenshot_1784368095.png" width="30%" alt="Hane AI Chatbot" />
-  <img src="Hane-ScreenShots/Screenshot_1784370333.png" width="30%" alt="Hane Sağlık & Esenlik" />
+  <img src="Hane-ScreenShots/1.png" width="30%" />
+<img src="Hane-ScreenShots/2.png" width="30%" />
+<img src="Hane-ScreenShots/3.png" width="30%" />
+<img src="Hane-ScreenShots/4.png" width="30%" />
+<img src="Hane-ScreenShots/5.png" width="30%" />
+<img src="Hane-ScreenShots/6.png" width="30%" />
+<img src="Hane-ScreenShots/7.png" width="30%" />
+<img src="Hane-ScreenShots/8.png" width="30%" />
+<img src="Hane-ScreenShots/9.png" width="30%" />
+<img src="Hane-ScreenShots/10.png" width="30%" />
+<img src="Hane-ScreenShots/11.png" width="30%" />
+<img src="Hane-ScreenShots/12.png" width="30%" />
+<img src="Hane-ScreenShots/13.png" width="30%" />
+<img src="Hane-ScreenShots/14.png" width="30%" />
+<img src="Hane-ScreenShots/15.png" width="30%" />
 </p>
 
 <p align="center">
