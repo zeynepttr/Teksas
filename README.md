@@ -60,6 +60,9 @@ Platformun mobil cihazlarda çalışmasının yanı sıra, İK uzmanları için 
 ### 📱 Mobil Uygulama Arayüzü
 
 <p align="center">
+  <img width="1080" height="2424" alt="Screenshot_1784367966" src="https://github.com/user-attachments/assets/1e2a485f-bd54-4568-bff3-df3726e7e112" />
+<img width="1080" height="2424" alt="Screenshot_1784359598" src="https://github.com/user-attachments/assets/dbfaa078-a75e-4355-ab4b-751f1148febe" />
+<img width="1080" height="2424" alt="Screenshot_1784313939" src="https://github.com/user-attachments/assets/a5abaef3-699d-4cd6-bcc5-b159e926c16b" />
   <img src="Hane-ScreenShots/Screenshot_1784367966.png" width="30%" alt="Hane Ana Sayfa" />
   <img src="Hane-ScreenShots/Screenshot_1784368095.png" width="30%" alt="Hane AI Chatbot" />
   <img src="Hane-ScreenShots/Screenshot_1784370333.png" width="30%" alt="Hane Sağlık & Esenlik" />
@@ -68,27 +71,6 @@ Platformun mobil cihazlarda çalışmasının yanı sıra, İK uzmanları için 
 <p align="center">
   <i>Hane Mobil: Ana Sayfa (Katılım Zamanlayıcısı), Hane AI Kurumsal Asistan ve Sağlık Randevu Sistemi</i>
 </p>
-
----
-
-### 🖥️ Responsive İK Yönetici Paneli
-
-<p align="center">
-  <img src="Hane-ScreenShots/Screenshot_1784376791.png" width="48%" alt="Yönetici Paneli - CRM ve Çalışan Yönetimi" />
-  <img src="Hane-ScreenShots/Screenshot_1784376824.png" width="48%" alt="Yönetici Paneli - İzin Talepleri" />
-</p>
-
-<p align="center">
-  <img src="Hane-ScreenShots/Screenshot_1784376839.png" width="48%" alt="Yönetici Paneli - Maaş Bordroları" />
-  <img src="Hane-ScreenShots/Screenshot_1784376851.png" width="48%" alt="Yönetici Paneli - Sistem Logları" />
-</p>
-
-<p align="center">
-  <i>Geniş Ekran Uyumlu İK Yönetici Arayüzü: CRM Analitiği, İzin Takibi, Bordro Dağıtımı ve Güvenlik Denetimi</i>
-</p>
-
-> [!NOTE]  
-> Uygulamanın çalışma videoları ve interaktif demoları **`Hane-ScreenShots/hanekayıt.mp4`** ve **`Hane-ScreenShots/Kayıt2.mp4`** dosyalarında yer almaktadır.
 
 ---
 
